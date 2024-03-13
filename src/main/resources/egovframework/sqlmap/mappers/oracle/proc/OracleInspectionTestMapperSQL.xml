@@ -1,0 +1,934 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seegene.web.repository.oracle.OracleInspectionTestMapper">
+
+	<!-- DB2 코드 조회 -->
+	<select id="findInspectionTestCodes" parameterType="list" resultType="db2CodeRO">
+		SELECT S002SCD, S002CNM, S002PSCD, S002SEQ
+		FROM WEBDBLIB.MWS002M@
+		WHERE
+		S002PSCD in
+		<foreach collection="list" item="item" separator="," open="("
+				 close=")">
+			#{item}
+		</foreach>
+		AND S002UYN = 'Y'
+	</select>
+
+
+	<!-- DB2 코드 조회 영문용 -->
+	<select id="findInspectionTestCodesEn" parameterType="list" resultType="db2CodeRO">
+		SELECT S002SCD, S002CNM, S002PSCD, S002SEQ
+		FROM WEBDBLIB.MWS002MEN@
+		WHERE
+		S002PSCD in
+		<foreach collection="list" item="item" separator="," open="("
+				 close=")">
+			#{item}
+		</foreach>
+		AND S002UYN = 'Y'
+	</select>
+
+	<!-- 코드조회 oracle  -->
+	<select id="getCommCodeOra"
+			parameterType="list"
+			resultType="db2CodeRO">
+		SELECT /* OracleInspectionTestMapper.getCommCode */ /* 공통코드 조회 */
+			CMMN_CD          AS S002SCD
+			 , CMMN_CD_NM       AS S002CNM
+			 , UPPR_CD AS S002PSCD
+			 , SORT_SEQ AS S002SEQ
+		FROM TST.T_HP_SYS_CD
+		WHERE 1=1
+		AND UPPR_CD in
+			<foreach collection="list" item="item" separator="," open="("
+				 close=")">
+			#{item}
+			</foreach>
+		  AND USE_YN = 'Y'
+    </select>
+
+	<!-- 검사 항목 조회 관련 리스트 조회 Oracle-->
+	<select id="inspectionTestListOra"
+			parameterType="HashMap"
+			resultType="mwt001R1ListRO">
+	<![CDATA[
+		SELECT  /* OracleInspectionTestMapper.inspectionTestList*/
+			'' AS F010COR
+			 , TSTCD.TST_CD AS F010GCD  						/*검사코드*/
+			 , TSTCD.TST_NM_ABBR AS F010SNM  				/*검사약어*/
+			 , TSTCD.TST_NM AS F010FKN 						/*검사명(한글)*/
+			 , TSTCD.TST_NM_ENG 	AS F010FEN		/* 검사명(영어) */
+			 , SMPL.SMPL_SCLF_CD  AS F010TCD 				/*검체코드*/
+			 , (
+			CASE WHEN INSTR(SMPL.SMPL_SCLF_CD,',') > 0
+					 THEN '복수검체'
+				 ELSE
+					 (
+						 SELECT MAX(A.SMPL_SCLF_NM)
+						 FROM TST.T_LM_SMPL_SCLF A
+						 WHERE A.SMPL_SCLF_CD  = SMPL.SMPL_SCLF_CD
+					 )
+				END
+			) AS F010TNM 								/*검체명*/
+			 , SMPL.VESS_CD AS F010GBX 						/*검체용기 코드*/
+			 , TSTCD.TST_MTHD_CD AS F010MSC  				/*검사방법 코드*/
+			 , MTHD.TST_MTHD_CONT AS F010MSNM 				/*검사방법 내용*/
+			 , CASE WHEN #{locale} = 'ko' THEN
+						CONCAT (
+								CASE (CONCAT (
+										CONCAT (
+												CONCAT (
+														CONCAT (
+																CONCAT (
+																		CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																			, CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN '화' ELSE '' END
+																			)
+																	, CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN '수' ELSE '' END
+																	)
+															, CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN '목' ELSE '' END
+															)
+													, CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN '금' ELSE '' END
+													)
+											, CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN '토' ELSE '' END
+											)
+									, CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN '일' ELSE '' END
+									)) WHEN '월화' THEN '월-화'
+									   WHEN '월화수' THEN '월-수'
+									   WHEN '월화수목' THEN '월-목'
+									   WHEN '월화수목금' THEN '월-금'
+									   WHEN '월화수목금토' THEN '월-토'
+									   WHEN '월화수목금토일' THEN '월-일'
+									   WHEN '화수' THEN '화-수'
+									   WHEN '화수목' THEN '화-목'
+									   WHEN '화수목금' THEN '화-금'
+									   WHEN '화수목금토' THEN '화-토'
+									   WHEN '화수목금토일' THEN '화-일'
+									   WHEN '수목' THEN '수-목'
+									   WHEN '수목금' THEN '수-금'
+									   WHEN '수목금토' THEN '수-토'
+									   WHEN '수목금토일' THEN '수-일'
+									   WHEN '목금' THEN '목-금'
+									   WHEN '목금토' THEN '목-토'
+									   WHEN '목금토일' THEN '목-일'
+									   WHEN '금토' THEN '금-토'
+									   WHEN '금토일' THEN '금-일'
+									   WHEN '토일' THEN '토-일'
+									   ELSE
+										   CASE SUBSTR ( CONCAT (
+																 CONCAT (
+																		 CONCAT (
+																				 CONCAT (
+																						 CONCAT (
+																								 CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																									 , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																									 )
+																							 , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																							 )
+																					 , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																					 )
+																			 , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																			 )
+																	 , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN ',토' ELSE '' END
+																	 )
+															 , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+															 ) , 1 , 1 )
+											   WHEN ',' THEN
+												   SUBSTR (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT (
+																								   CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																									   , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																									   )
+																							   , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN ',토' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+															   ), 2, LENGTH (
+																			 CONCAT (
+																					 CONCAT (
+																							 CONCAT (
+																									 CONCAT (
+																											 CONCAT (
+																													 CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																														 , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																														 )
+																												 , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																												 )
+																										 , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																										 )
+																								 , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																								 )
+																						 , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN ',토' ELSE '' END
+																						 )
+																				 , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+																				 )
+																		 ) - 1 )
+											   ELSE
+												   CONCAT (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																							   , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1 ) WHEN 'O' THEN ',토' ELSE '' END
+															   )
+													   , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+													   )
+											   END
+									END
+							, CONCAT ('/', CASE WHEN TSTCD.TST_CD IN ('21191','21192') THEN '주간'
+												ELSE
+													CASE TSTCD.DYTM_NTTM_DIV_CD
+														WHEN 'D' THEN '주간'
+														WHEN 'N' THEN '야간'
+														ELSE ''
+														END
+							END
+									)
+							)
+					ELSE
+						CONCAT (
+								CASE (CONCAT (
+										CONCAT (
+												CONCAT (
+														CONCAT (
+																CONCAT (
+																		CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																			, CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN '화' ELSE '' END
+																			)
+																	, CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN '수' ELSE '' END
+																	)
+															, CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN '목' ELSE '' END
+															)
+													, CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN '금' ELSE '' END
+													)
+											, CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN '토' ELSE '' END
+											)
+									, CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN '일' ELSE '' END
+									)) WHEN '월화' THEN 'Mon-Tue'
+									   WHEN '월화수' THEN 'Mon-Wed'
+									   WHEN '월화수목' THEN 'Mon-Thu'
+									   WHEN '월화수목금' THEN 'Mon-Fri'
+									   WHEN '월화수목금토' THEN 'Mon-Sat'
+									   WHEN '월화수목금토일' THEN 'Mon-Sun'
+									   WHEN '화수' THEN 'Tue-Wed'
+									   WHEN '화수목' THEN 'Tue-Thu'
+									   WHEN '화수목금' THEN 'Tue-Fri'
+									   WHEN '화수목금토' THEN 'Tue-Sat'
+									   WHEN '화수목금토일' THEN 'Tue-Sun'
+									   WHEN '수목' THEN 'Wed-Thu'
+									   WHEN '수목금' THEN 'Wed-Fri'
+									   WHEN '수목금토' THEN 'Wed-Sat'
+									   WHEN '수목금토일' THEN 'Wed-Sun'
+									   WHEN '목금' THEN 'Thu-Fri'
+									   WHEN '목금토' THEN 'Thu-Sat'
+									   WHEN '목금토일' THEN 'Thu-Sun'
+									   WHEN '금토' THEN 'Fri-Sat'
+									   WHEN '금토일' THEN 'Fri-Sun'
+									   WHEN '토일' THEN 'Sat-Sun'
+									   ELSE
+										   CASE SUBSTR ( CONCAT (
+																 CONCAT (
+																		 CONCAT (
+																				 CONCAT (
+																						 CONCAT (
+																								 CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																									 , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																									 )
+																							 , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																							 )
+																					 , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																					 )
+																			 , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																			 )
+																	 , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN ',Sat' ELSE '' END
+																	 )
+															 , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+															 ) , 1 , 1 )
+											   WHEN ',' THEN
+												   SUBSTR (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT (
+																								   CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																									   , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																									   )
+																							   , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN ',Sat' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+															   ), 2, LENGTH (
+																			 CONCAT (
+																					 CONCAT (
+																							 CONCAT (
+																									 CONCAT (
+																											 CONCAT (
+																													 CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																														 , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																														 )
+																												 , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																												 )
+																										 , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																										 )
+																								 , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																								 )
+																						 , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1) WHEN 'O' THEN ',Sat' ELSE '' END
+																						 )
+																				 , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+																				 )
+																		 ) - 1 )
+											   ELSE
+												   CONCAT (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT ( CASE SUBSTR (TSTCD.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																							   , CASE SUBSTR (TSTCD.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TSTCD.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TSTCD.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TSTCD.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TSTCD.TST_WKDY, 6, 1 ) WHEN 'O' THEN ',Sat' ELSE '' END
+															   )
+													   , CASE SUBSTR (TSTCD.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+													   )
+											   END
+									END
+							, CONCAT ('/', CASE WHEN TSTCD.TST_CD IN ('21191','21192') THEN 'Day'
+												ELSE
+													CASE TSTCD.DYTM_NTTM_DIV_CD
+														WHEN 'D' THEN 'Day'
+														WHEN 'N' THEN 'Night'
+														ELSE ''
+														END
+							END
+									)
+							)
+			END 				AS T001DAY  		/* 검사일 */
+			 , CASE WHEN #{locale} = 'ko' THEN TSTCD.TST_RQED_DCNT || '일'
+					ELSE TSTCD.TST_RQED_DCNT || '' END AS F010EED 					/* 검사소요일수 */
+			 , ITEM.USE_YN AS T001FLG 								/* 사용여부 */
+			 , ITEM.LIST_USE_YN AS T001LFLG 						    /* 리스트사용여부 */
+			 , TSTCD.USE_YN AS F010STS 								/* 상태 */
+			 , DECODE(MDCT.INSU_CD , '-','', MDCT.INSU_CD) AS F018OCD /* 보험코드 */
+		FROM
+			TST.T_LM_TST_CD TSTCD
+				INNER JOIN TST.T_HP_TST_ITEM ITEM
+						   ON TSTCD . TST_CD = ITEM . TST_CD
+				INNER JOIN
+			(
+				SELECT
+					LISTAGG(SMPL_SCLF_CD,',') AS SMPL_SCLF_CD
+					 ,TST_CD
+					 ,LISTAGG(VESS_CD ,',') AS VESS_CD
+					 ,COUNT(1) AS CNT
+				FROM TST.T_LM_TST_SMPL SMPL
+				GROUP BY TST_CD
+			) SMPL
+			ON SMPL.TST_CD = TSTCD.TST_CD
+				LEFT JOIN TST.T_LM_INSPDPT_TST_ITMS ITMS
+						  ON TSTCD.TST_CD = ITMS.TST_CD
+							  AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN ITMS.STRT_DT AND ITMS.END_DT
+							  AND ITMS.CNTR_CD = '13100005'
+				LEFT JOIN TST.T_LM_TST_MTHD MTHD
+						  ON TSTCD.TST_MTHD_CD = MTHD.TST_MTHD_CD
+				LEFT JOIN TST.T_LM_TST_MDCT MDCT
+						  ON TSTCD.TST_CD = MDCT.TST_CD
+							  AND MDCT.CNTR_CD = '99999999'
+							  AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN MDCT.STRT_DT AND MDCT.END_DT
+		WHERE 1=1
+		  AND TSTCD.USE_YN = 'Y'
+		  AND TSTCD.HMPG_NTCE_YN = 'Y'
+		  AND ITEM.USE_YN = 'Y'
+		  AND ITEM.LIST_USE_YN = 'Y'
+		  AND ( #{iAlhnm} = '' OR UPPER (TSTCD.TST_NM) LIKE UPPER (#{iAlhnm}) || '%' ) /* 검사명 알파벳검색 */
+		  AND ( NVL(#{iHak},'-') = '-' OR ITMS.INSPDPT_CD = #{iHak} ) /*검사학부*/
+		  AND ( NVL(#{iIsc},'-') = '-' OR TSTCD . DISS_CD IN (
+			SELECT
+				SUBSTR ( NAME, 1, INSTR(NAME, '|')- 1) DWARF
+			FROM (
+					 SELECT N , SUBSTR (VAL, 1 + INSTR ( VAL, '|', 1, N ) ) NAME
+					 FROM
+						 ( SELECT
+							   ROW_NUMBER ( ) OVER (ORDER BY VAL) AS N ,
+								   LIST . VAL
+						   FROM
+								   ( SELECT #{iIsc} AS VAL FROM DUAL ) LIST
+							   CONNECT BY
+		                        LEVEL < (LENGTH (LIST.VAL) - LENGTH (REPLACE ( LIST.VAL ,'|' ,'' )))
+						 ) BB
+				 ) CC
+		)
+			)  /*관련 질환 분류*/
+		  AND (
+				(NVL(#{iSerfnm},'-') = '-' AND (( UPPER (TSTCD.TST_NM) LIKE '%' || UPPER (#{iSernm}) || '%' )
+					OR ( UPPER (TSTCD.TST_NM_ABBR) LIKE '%' || UPPER (#{iSernm}) || '%' )
+					OR ( UPPER (TSTCD.TST_CD) LIKE '%' || UPPER (#{iSernm}) || '%' )
+					OR ( UPPER (DECODE(MDCT.INSU_CD , '-','', MDCT.INSU_CD)) LIKE '%' || UPPER (#{iSernm}) || '%' )))
+				OR (NVL(#{iSerfnm},'-') = '01'  AND UPPER (TSTCD.TST_NM) LIKE '%' || UPPER (#{iSernm}) || '%')
+				OR (NVL(#{iSerfnm},'-') = '02'  AND UPPER (TSTCD.TST_NM_ABBR) LIKE '%' || UPPER (#{iSernm}) || '%')
+				OR (NVL(#{iSerfnm},'-') = '03'  AND UPPER (TSTCD.TST_CD) LIKE '%' || UPPER (#{iSernm}) || '%')
+				OR (NVL(#{iSerfnm},'-') = '04'  AND UPPER (DECODE(MDCT.INSU_CD , '-','', MDCT.INSU_CD)) LIKE '%' || UPPER (#{iSernm}) || '%')
+			)
+		ORDER BY
+			F010FKN  /* 검사명 */
+			   , F010GCD  /* 검사코드 */
+			   , F010TCD  /* 보험코드 */
+		]]>
+	</select>
+
+	<!-- 검사 항목 조회 관련 리스트 조회 -->
+	<select id="inspectionTestList" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R1ListRO">
+		{ CALL WEBOBJLIB.MWT001R1
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSerfnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSernm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iHak, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIsc, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iAlhnm, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+
+	<!-- 영문 EN 검사 항목 조회 관련 리스트 조회 -->
+	<select id="inspectionTestListEn" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R1ListRO">
+		{ CALL WEBOBJLIB.MWT001R1EN
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSerfnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSernm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iHak, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIsc, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iAlhnm, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+
+	<!-- 검사 항목 상세 조회 Oracle-->
+	<select id="inspectionTestViewOra"
+			parameterType="HashMap"
+			resultType="mwt001R2ViewRO">
+	<![CDATA[
+		SELECT			/* OracleInspectionTestMapper.inspectionTestView */
+			TC.TST_CD 			AS F010GCD		/* 검사코드 */
+			 , TC.TST_NM 		AS F010FKN		/* 검사명(한글) */
+			 , TC.TST_NM_ENG 	AS F010FEN		/* 검사명(한글) */
+			 , TC.TST_NM_ABBR	AS F010SNM  	/* 검사명(약어) */
+			 , TS.SMPL_CLCT_QTY	AS F010GTQ		/* 검체채취량 */
+			 , TS.SMPL_TST_RQED_QTY	AS F010STQ	/* 검체 소요량 */
+			 , TS.SMPL_SCLF_CD	AS F010TCD		/* 검체 코드 (F999CD2 = 'SAMP') */
+			 , CASE WHEN SMPL_CNT > 1 THEN '복수검체'
+					ELSE (SELECT
+							  CASE WHEN #{locale} = 'ko' THEN SMPL_SCLF_NM
+								   ELSE SMPL_SCLF_NM_ENG
+								  END
+						  FROM T_LM_SMPL_SCLF
+						  WHERE SMPL_SCLF_CD = TS.SMPL_SCLF_CD)
+			END 				AS F010TNM 		/* 검체명 */
+			 , TS.VESS_CD		AS F010GBX  	/* 검체용기코드 */
+			 , CASE WHEN SMPL_CNT > 1 THEN '복수용기'
+					ELSE (SELECT
+							  CASE WHEN #{locale} = 'ko' THEN CD_REFR_VAL3
+								   ELSE CD_REFR_VAL4
+								  END
+						  FROM TST.T_HP_SYS_CD
+						  WHERE 1=1
+							AND (
+								  (#{locale} = 'ko' AND UPPR_CD = 'VESS')
+								  OR (#{locale} = 'ko' AND UPPR_CD = 'VESE')
+							  )
+							AND CMMN_CD = TS.VESS_CD
+					)
+			END 				AS F010GBNM 		/* 검체명 */
+			 , (SELECT
+					CASE WHEN #{locale} = 'ko' THEN
+							 IMG_FILE_PATH || IMG_FILE_NM
+						 ELSE
+							 IMG_FILE_PATH || 'EN_' || IMG_FILE_NM
+						END
+				FROM TST.T_HP_SMPL_VESS_IMG
+				WHERE SMPL_VESS_CD = TS.VESS_CD
+		) 					AS VESSIMG			/* 검체용기이미지 */
+			 , TC.TST_MTHD_CD	AS F010MSC			/* 검사법 */
+			 , (SELECT
+					CASE WHEN #{locale} = 'ko' THEN TST_MTHD_CONT
+						 ELSE TST_MTHD_CONT_ENG
+						END
+				FROM T_LM_TST_MTHD
+				WHERE TST_MTHD_CD = TC.TST_MTHD_CD
+		) 					AS F010MSNM			/* 검사방법내용  */
+			 , HMPG_NTCE_YN		AS F010ACH			/* WEB여부 */
+			 , CASE WHEN #{locale} = 'ko' THEN
+						CASE TS.SMPL_PRSV_MTHD_CD
+							WHEN '1' THEN '실온'
+							WHEN '2' THEN '냉장'
+							WHEN '3' THEN '동결'
+							WHEN '4' THEN '절대동결'
+							ELSE ''
+							END
+					ELSE
+						CASE TS.SMPL_PRSV_MTHD_CD
+							WHEN '1' THEN 'Room temperature'
+							WHEN '2' THEN 'Refrigerated'
+							WHEN '3' THEN 'Frozen'
+							WHEN '4' THEN 'Frozen'
+							ELSE ''
+							END
+			END AS T001SAV		 	/* 보존방법 */
+			 , CASE WHEN #{locale} = 'ko' THEN
+						CONCAT (
+								CASE (CONCAT (
+										CONCAT (
+												CONCAT (
+														CONCAT (
+																CONCAT (
+																		CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																			, CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN '화' ELSE '' END
+																			)
+																	, CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN '수' ELSE '' END
+																	)
+															, CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN '목' ELSE '' END
+															)
+													, CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN '금' ELSE '' END
+													)
+											, CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN '토' ELSE '' END
+											)
+									, CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN '일' ELSE '' END
+									)) WHEN '월화' THEN '월-화'
+									   WHEN '월화수' THEN '월-수'
+									   WHEN '월화수목' THEN '월-목'
+									   WHEN '월화수목금' THEN '월-금'
+									   WHEN '월화수목금토' THEN '월-토'
+									   WHEN '월화수목금토일' THEN '월-일'
+									   WHEN '화수' THEN '화-수'
+									   WHEN '화수목' THEN '화-목'
+									   WHEN '화수목금' THEN '화-금'
+									   WHEN '화수목금토' THEN '화-토'
+									   WHEN '화수목금토일' THEN '화-일'
+									   WHEN '수목' THEN '수-목'
+									   WHEN '수목금' THEN '수-금'
+									   WHEN '수목금토' THEN '수-토'
+									   WHEN '수목금토일' THEN '수-일'
+									   WHEN '목금' THEN '목-금'
+									   WHEN '목금토' THEN '목-토'
+									   WHEN '목금토일' THEN '목-일'
+									   WHEN '금토' THEN '금-토'
+									   WHEN '금토일' THEN '금-일'
+									   WHEN '토일' THEN '토-일'
+									   ELSE
+										   CASE SUBSTR ( CONCAT (
+																 CONCAT (
+																		 CONCAT (
+																				 CONCAT (
+																						 CONCAT (
+																								 CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																									 , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																									 )
+																							 , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																							 )
+																					 , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																					 )
+																			 , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																			 )
+																	 , CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN ',토' ELSE '' END
+																	 )
+															 , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+															 ) , 1 , 1 )
+											   WHEN ',' THEN
+												   SUBSTR (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT (
+																								   CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																									   , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																									   )
+																							   , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN ',토' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+															   ), 2, LENGTH (
+																			 CONCAT (
+																					 CONCAT (
+																							 CONCAT (
+																									 CONCAT (
+																											 CONCAT (
+																													 CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																														 , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																														 )
+																												 , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																												 )
+																										 , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																										 )
+																								 , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																								 )
+																						 , CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN ',토' ELSE '' END
+																						 )
+																				 , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+																				 )
+																		 ) - 1 )
+											   ELSE
+												   CONCAT (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																							   , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',화' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',수' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',목' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',금' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TC.TST_WKDY, 6, 1 ) WHEN 'O' THEN ',토' ELSE '' END
+															   )
+													   , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',일' ELSE '' END
+													   )
+											   END
+									END
+							, CONCAT ('/', CASE WHEN TC.TST_CD IN ('21191','21192') THEN '주간'
+												ELSE
+													CASE TC.DYTM_NTTM_DIV_CD
+														WHEN 'D' THEN '주간'
+														WHEN 'N' THEN '야간'
+														ELSE ''
+														END
+							END
+									)
+							)
+					ELSE
+						CONCAT (
+								CASE (CONCAT (
+										CONCAT (
+												CONCAT (
+														CONCAT (
+																CONCAT (
+																		CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN '월' ELSE '' END
+																			, CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN '화' ELSE '' END
+																			)
+																	, CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN '수' ELSE '' END
+																	)
+															, CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN '목' ELSE '' END
+															)
+													, CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN '금' ELSE '' END
+													)
+											, CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN '토' ELSE '' END
+											)
+									, CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN '일' ELSE '' END
+									)) WHEN '월화' THEN 'Mon-Tue'
+									   WHEN '월화수' THEN 'Mon-Wed'
+									   WHEN '월화수목' THEN 'Mon-Thu'
+									   WHEN '월화수목금' THEN 'Mon-Fri'
+									   WHEN '월화수목금토' THEN 'Mon-Sat'
+									   WHEN '월화수목금토일' THEN 'Mon-Sun'
+									   WHEN '화수' THEN 'Tue-Wed'
+									   WHEN '화수목' THEN 'Tue-Thu'
+									   WHEN '화수목금' THEN 'Tue-Fri'
+									   WHEN '화수목금토' THEN 'Tue-Sat'
+									   WHEN '화수목금토일' THEN 'Tue-Sun'
+									   WHEN '수목' THEN 'Wed-Thu'
+									   WHEN '수목금' THEN 'Wed-Fri'
+									   WHEN '수목금토' THEN 'Wed-Sat'
+									   WHEN '수목금토일' THEN 'Wed-Sun'
+									   WHEN '목금' THEN 'Thu-Fri'
+									   WHEN '목금토' THEN 'Thu-Sat'
+									   WHEN '목금토일' THEN 'Thu-Sun'
+									   WHEN '금토' THEN 'Fri-Sat'
+									   WHEN '금토일' THEN 'Fri-Sun'
+									   WHEN '토일' THEN 'Sat-Sun'
+									   ELSE
+										   CASE SUBSTR ( CONCAT (
+																 CONCAT (
+																		 CONCAT (
+																				 CONCAT (
+																						 CONCAT (
+																								 CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																									 , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																									 )
+																							 , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																							 )
+																					 , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																					 )
+																			 , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																			 )
+																	 , CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN ',Sat' ELSE '' END
+																	 )
+															 , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+															 ) , 1 , 1 )
+											   WHEN ',' THEN
+												   SUBSTR (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT (
+																								   CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																									   , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																									   )
+																							   , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN ',Sat' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+															   ), 2, LENGTH (
+																			 CONCAT (
+																					 CONCAT (
+																							 CONCAT (
+																									 CONCAT (
+																											 CONCAT (
+																													 CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																														 , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																														 )
+																												 , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																												 )
+																										 , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																										 )
+																								 , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																								 )
+																						 , CASE SUBSTR (TC.TST_WKDY, 6, 1) WHEN 'O' THEN ',Sat' ELSE '' END
+																						 )
+																				 , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+																				 )
+																		 ) - 1 )
+											   ELSE
+												   CONCAT (
+														   CONCAT (
+																   CONCAT (
+																		   CONCAT (
+																				   CONCAT (
+																						   CONCAT ( CASE SUBSTR (TC.TST_WKDY, 1, 1) WHEN 'O' THEN 'Mon' ELSE '' END
+																							   , CASE SUBSTR (TC.TST_WKDY, 2, 1) WHEN 'O' THEN ',Tue' ELSE '' END
+																							   )
+																					   , CASE SUBSTR (TC.TST_WKDY, 3, 1) WHEN 'O' THEN ',Wed' ELSE '' END
+																					   )
+																			   , CASE SUBSTR (TC.TST_WKDY, 4, 1) WHEN 'O' THEN ',Thu' ELSE '' END
+																			   )
+																	   , CASE SUBSTR (TC.TST_WKDY, 5, 1) WHEN 'O' THEN ',Fri' ELSE '' END
+																	   )
+															   , CASE SUBSTR (TC.TST_WKDY, 6, 1 ) WHEN 'O' THEN ',Sat' ELSE '' END
+															   )
+													   , CASE SUBSTR (TC.TST_WKDY, 7, 1) WHEN 'O' THEN ',Sun' ELSE '' END
+													   )
+											   END
+									END
+							, CONCAT ('/', CASE WHEN TC.TST_CD IN ('21191','21192') THEN 'Day'
+												ELSE
+													CASE TC.DYTM_NTTM_DIV_CD
+														WHEN 'D' THEN 'Day'
+														WHEN 'N' THEN 'Night'
+														ELSE ''
+														END
+							END
+									)
+							)
+			END 				AS T001DAY  		/* 검사일 */
+			 , CASE WHEN #{locale} = 'ko' THEN TC.TST_RQED_DCNT || '일'
+					ELSE TC.TST_RQED_DCNT || '' END AS F010EED 					/* 검사소요일수 */
+			 , TI.TST_CLNL_INFO 	AS T001CONT			/* 임상정보 */
+			 , TI.TST_ATPN		AS T001ETC			/* 주의사항 */
+			 , TI.PAGE_URL		AS T001URL		 	/* URL */
+			 , TI.RFVAL 			AS T001REF		 	/* 참고치 */
+			 , TI.USE_YN			AS T001FLG		 	/* 사용여부 */
+			 , TI.LIST_USE_YN	AS T001LFLG			/* 리스트사용여부 */
+			 , TC.USE_YN 		AS F010STS		 	/* 상태 */
+			 , TC.DISS_CD		AS F010ISC		 	/* 질병검사코드 */
+			 , ''				AS F010HAK		 	/* 검사학부코드 */
+			 , TMT.SOMK
+			 , TMT.BOMK
+			 , TMT.SOCD
+			 , TMT.BOCD
+			 , TMT.SSSU
+			 , TMT.BSSU
+			 , TMT.SBSU
+			 , TMT.BBSU
+			 , TMT.TSSU
+			 , TMT.DOCD
+			 , TMT.DOCD_TMP
+			 , TMT.OMK
+			 , TMT.VIEW_YN
+			 , TC.SMPL_STBLT_RTMPT					/* 검체안전성(실온) */
+			 , TC.SMPL_STBLT_RFGRN 					/* 검체안전성(냉장) */
+			 , TC.SMPL_STBLT_FREZ					/* 검체안전성(냉동) */
+		FROM TST.T_LM_TST_CD TC						/* 검사코드 마스터 */
+				 LEFT OUTER JOIN TST.T_HP_TST_ITEM TI		/* 검사항목정보 */
+								 ON TI.TST_CD = TC.TST_CD
+									 AND TI.USE_YN = 'Y'
+									 AND TI.LIST_USE_YN = 'Y'
+				 LEFT OUTER JOIN (
+			SELECT
+				TST_CD
+				 , MAX(SMPL_SCLF_CD)	AS SMPL_SCLF_CD	/* 검체소분류코드 */
+				 , SMPL_CLCT_QTY						/* 검체체취량 */
+				 , SMPL_TST_RQED_QTY					/* 검체 검사소요량 */
+				 , MAX(VESS_CD) AS VESS_CD			/* 검체소분류코드 */
+				 , MAX(SMPL_PRSV_MTHD_CD) AS SMPL_PRSV_MTHD_CD /* 검체보존방법코드 */
+				 , COUNT(SMPL_SCLF_CD) AS SMPL_CNT
+			FROM TST.T_LM_TST_SMPL
+			GROUP BY TST_CD, SMPL_CLCT_QTY, SMPL_TST_RQED_QTY
+		) TS
+								 ON TS.TST_CD = TC.TST_CD
+				 LEFT OUTER JOIN (SELECT
+									  TST_CD
+									   ,MAX(SOMK)		AS SOMK
+									   ,MAX(BOMK)		AS BOMK
+									   ,MAX(SOCD)      AS SOCD
+									   ,MAX(BOCD)      AS BOCD
+									   ,MAX(SSSU)      AS SSSU
+									   ,MAX(BSSU)      AS BSSU
+									   ,MAX(SBSU)      AS SBSU
+									   ,MAX(BBSU)      AS BBSU
+									   ,MAX(TSSU)      AS TSSU
+									   ,MAX(DOCD)      AS DOCD
+									   ,MAX(DOCD_TMP)  AS DOCD_TMP
+									   ,MAX(OMK)       AS OMK
+									   ,MAX(VIEW_YN)   AS VIEW_YN
+								  FROM (SELECT
+											TST_CD
+											 , CNTR_CD
+											 , CASE WHEN CNTR_CD = '13100005' THEN INSU_CLSF_NO
+													ELSE NULL
+										  END AS SOMK 	/* 보험분류번호 - 서울 */
+											 , CASE WHEN CNTR_CD = '13900000' THEN INSU_CLSF_NO
+													ELSE NULL
+										  END AS BOMK 	/* 보험분류번호 - 부산 */
+											 , CASE WHEN CNTR_CD = '13100005' THEN INSU_CD
+													ELSE NULL
+										  END AS SOCD 	/* 보험코드 - 서울 */
+											 , CASE WHEN CNTR_CD = '13900000' THEN INSU_CD
+													ELSE NULL
+										  END AS BOCD 	/* 보험코드 - 부산 */
+											 , CASE WHEN CNTR_CD = '13100005' THEN BASS_MDCT
+													ELSE NULL
+										  END AS SSSU
+											 , CASE WHEN CNTR_CD = '13900000' THEN BASS_MDCT
+													ELSE NULL
+										  END AS BSSU
+											 , CASE WHEN CNTR_CD = '13100005' THEN INSU_MDCT
+													ELSE NULL
+										  END AS SBSU
+											 , CASE WHEN CNTR_CD = '13900000' THEN INSU_MDCT
+													ELSE NULL
+										  END AS BBSU
+											 , CASE WHEN CNTR_CD = '99999999' THEN TO_CHAR(BASS_MDCT, '999,999,999')
+													ELSE NULL
+										  END AS TSSU
+											 , (SELECT
+													QLAD_EXCU_CD
+												FROM T_LM_MDCT_JOB
+												WHERE TST_CD = TM.TST_CD
+												  AND CNTR_CD = '13100005') AS DOCD
+											 , CASE WHEN CNTR_CD = '99999999' THEN INSU_CD
+													ELSE NULL
+										  END AS DOCD_TMP
+											 , CASE WHEN CNTR_CD = '99999999' THEN INSU_CLSF_NO
+													ELSE NULL
+										  END AS OMK
+											 , CASE WHEN CNTR_CD = '99999999' AND INSU_CLSF_NO LIKE '%노%' THEN 'Y'
+													ELSE 'N' END VIEW_YN
+										FROM T_LM_TST_MDCT TM
+										WHERE TST_CD = #{iGcd}
+										  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN STRT_DT AND END_DT
+										  AND CNTR_CD IN ('13900000', '13100005', '99999999')
+									   )
+								  GROUP BY TST_CD
+		) TMT
+								 ON TMT.TST_CD = TC.TST_CD
+		WHERE 1=1
+		  AND TC.TST_CD = LPAD(#{iGcd}, 5, '0') 	/* 검사코드 */
+		  AND TC.USE_YN = 'Y'						/* 사용여부 */
+		  AND TC.HMPG_NTCE_YN = 'Y'				/* 웹 사용여부 */
+		]]>
+	</select>
+
+	<!-- 검사 항목 조회 관련 상세 조회 -->
+	<select id="inspectionTestView" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R2ViewRO">
+		{ CALL WEBOBJLIB.MWT001R2
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iGcd, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+
+	<!-- 영문 EN 검사 항목 조회 관련 상세 조회 -->
+	<select id="inspectionTestViewEn" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R2ViewRO">
+		{ CALL WEBOBJLIB.MWT001R2EN
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iGcd, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+	
+	<!-- 검사 항목 추가 가능 리스트 조회 -->
+	<select id="inspectionAddTestList" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R3ListRO">
+		{ CALL WEBOBJLIB.MWT001R3
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+
+</mapper>

@@ -113,7 +113,11 @@ public class HealthInfoService {
 			return null;
 		}
 		if(StringUtils.isNotEmpty(item.getImgContentPath())){
-			item.setImgContent(fileComponent.getImageToBase64(FILE_PATH + File.separator + item.getImgContentPath()));
+			try {
+				item.setImgContent(fileComponent.getImageToBase64(FILE_PATH + File.separator + item.getImgContentPath()));
+			} catch (Exception e) {
+				item.setImgContent("");
+			}
 		}else{
 			item.setImgContent("");
 		}

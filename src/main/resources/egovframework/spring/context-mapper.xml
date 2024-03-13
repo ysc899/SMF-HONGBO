@@ -16,6 +16,13 @@
 		<property name="mapperLocations" value="classpath:/egovframework/sqlmap/mappers/db2/**/*SQL.xml" />
 	</bean>
 
+	<!-- SqlSession setup for Oracle Database Layer -->
+	<bean id="sqlOracleSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="oraDb.dataSource" />
+		<property name="configLocation" value="classpath:/egovframework/sqlmap/mappers/oracle/sql-mapper-config.xml" />
+		<property name="mapperLocations" value="classpath:/egovframework/sqlmap/mappers/oracle/**/*SQL.xml" />
+	</bean>
+
 	<!-- MapperConfigurer setup for MyBatis Database Layer with @Mapper("deptMapper") in DeptMapper Interface -->
  	<bean class="egovframework.rte.psl.dataaccess.mapper.MapperConfigurer">
 		<property name="basePackage" value="com.seegene.web.repository.mariadb" />
@@ -27,5 +34,10 @@
 		<property name="basePackage" value="com.seegene.web.repository.db2" />
 		<property name="sqlSessionFactoryBeanName" value="sqlDb2Session" />
 	</bean>
-    
+
+	<!-- MapperConfigurer setup for Oracle Database Layer with @Mapper("deptMapper") in DeptMapper Interface -->
+	<bean class="egovframework.rte.psl.dataaccess.mapper.MapperConfigurer">
+		<property name="basePackage" value="com.seegene.web.repository.oracle" />
+		<property name="sqlSessionFactoryBeanName" value="sqlOracleSession" />
+	</bean>
 </beans>

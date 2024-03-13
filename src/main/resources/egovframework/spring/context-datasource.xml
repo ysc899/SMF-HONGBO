@@ -18,6 +18,7 @@
     <!-- datasource 설정(propertyConfigurer 활용) -->
     <alias name="dataSource-mariadb" alias="dataSource" />
     <alias name="dataSource-db2" alias="db2.dataSource" />
+    <alias name="dataSource-oraDb" alias="oraDb.dataSource" />
     
     <!-- mysql -->
     <bean id="dataSource-mariadb" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
@@ -43,5 +44,14 @@
 <!--         <property name="username" value="WEB2019"/> -->
 <!--         <property name="password" value="W2B@2$41O3"/> -->
 <!--     </bean> -->
-    
+
+    <!-- oracle -->
+    <bean id="dataSource-oraDb" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${oraDb.DriverClassName}"/>
+        <property name="url" value="${oraDb.Url}" />
+        <property name="username" value="${oraDb.UserName}"/>
+        <property name="password" value="${oraDb.Password}"/>
+        <property name="validationQuery" value="SELECT 1 FROM DUAL" />
+    </bean>
+
 </beans>

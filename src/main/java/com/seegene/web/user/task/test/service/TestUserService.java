@@ -28,6 +28,7 @@ public class TestUserService {
 
 	@Autowired
 	private InspectionTestService inspectionTestService;
+
 	
 //	@Autowired
 //	private UserCodeService userCodeService;
@@ -72,9 +73,11 @@ public class TestUserService {
 
 		
 		if(language.equals("ko")){
+			searchParam.setLocale("ko");
 			result = inspectionTestService.findInspectionTestKrList(searchParam, request);
 		}else{
-			result = inspectionTestService.findInspectionTestEnList(searchParam, request);
+			searchParam.setLocale("en");
+			result = inspectionTestService.findInspectionTestKrList(searchParam, request);
 		}
 		
 		
@@ -87,9 +90,13 @@ public class TestUserService {
 
 		MWT001R2ViewRO result = inspectionTestService.findInspectionTestView(seq, language, request);
 
-		if (!"".equals(result.getT001url())) {
+		if (!StringUtils.isNotEmpty(result.getT001url())) {
 			//생성은 350으로 생성하고 html에서는 64,128등 사이즈를 고정해서 쓴다.
-			result.setT001urlqr(generateQRCodeImage(result.getT001url(), 350, 350));
+			try {
+				result.setT001urlqr(generateQRCodeImage(result.getT001url(), 350, 350));
+			} catch (Exception e) {
+				result.setT001urlqr("");
+			}
 		}
 		return result;
 	}

@@ -15,5 +15,7 @@ public class InspectionTestSearchOption extends SearchPaggingCommonPO{
 	private String dissClsOption;
 	/** 알파벳 검색용 */
 	private String searchAlp;
+
+	private String locale = "ko";
 	
 }

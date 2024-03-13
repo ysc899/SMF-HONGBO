@@ -19,5 +19,5 @@ public class MWT001R2SearchPO {
 	private String oErrcod = "";
 	/** 검사코드 */
 	private String iGcd = "";
-	
+	private String locale = "ko";
 }

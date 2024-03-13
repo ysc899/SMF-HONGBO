@@ -11,6 +11,7 @@ import com.seegene.web.common.*;
 import com.seegene.web.repository.db2.DB2InspectionTestMapper;
 import com.seegene.web.repository.mariadb.InspectionTestEnMapper;
 import com.seegene.web.repository.mariadb.InspectionTestMapper;
+import com.seegene.web.repository.oracle.OracleInspectionTestMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
@@ -45,6 +46,9 @@ public class InspectionTestService {
 	private InspectionTestEnMapper enTestMapper;
 
 	@Autowired
+	private OracleInspectionTestMapper oracleMapper;
+
+	@Autowired
 	private CodeService codeService;
 
 	@Autowired
@@ -54,6 +58,7 @@ public class InspectionTestService {
 	private FileComponent fileComponent;
 
 	private final List<String> SEARCH_CODES = Arrays.asList("TEST_INFO", "MEDI_CLS", "DISS_CLS");
+	private final List<String> SEARCH_CODES_EN = Arrays.asList("TEST_INFO_ENG", "MEDI_CLS_ENG", "DISS_CLS_ENG");
 
 	/**
 	 * @return 검색 옵션에 사용할 기본 코드들
@@ -61,8 +66,8 @@ public class InspectionTestService {
 	public InspectionTestListDefaultRO listSearchOption() {
 		InspectionTestListDefaultRO item = new InspectionTestListDefaultRO();
 
-		List<DB2CodeRO> results = db2Mapper.findInspectionTestCodes(SEARCH_CODES);
-
+		//List<DB2CodeRO> results = db2Mapper.findInspectionTestCodes(SEARCH_CODES);
+		List<DB2CodeRO> results = oracleMapper.getCommCodeOra(SEARCH_CODES);
 		List<DB2CodeRO> testInfoCodes = results.stream().filter(t -> {
 			return t.getS002pscd().equals("TEST_INFO");
 		}).sorted().collect(Collectors.toList());
@@ -86,16 +91,17 @@ public class InspectionTestService {
 	public InspectionTestListDefaultRO listSearchOptionEn() {
 		InspectionTestListDefaultRO item = new InspectionTestListDefaultRO();
 
-		List<DB2CodeRO> results = db2Mapper.findInspectionTestCodesEn(SEARCH_CODES);
+		//List<DB2CodeRO> results = db2Mapper.findInspectionTestCodesEn(SEARCH_CODES);
+		List<DB2CodeRO> results = oracleMapper.getCommCodeOra(SEARCH_CODES_EN);
 
 		List<DB2CodeRO> testInfoCodes = results.stream().filter(t -> {
-			return t.getS002pscd().equals("TEST_INFO");
+			return t.getS002pscd().equals("TEST_INFO_ENG");
 		}).sorted().collect(Collectors.toList());
 		List<DB2CodeRO> mediClsCodes = results.stream().filter(t -> {
-			return t.getS002pscd().equals("MEDI_CLS");
+			return t.getS002pscd().equals("MEDI_CLS_ENG");
 		}).sorted().collect(Collectors.toList());
 		List<DB2CodeRO> dissClsCodes = results.stream().filter(t -> {
-			return t.getS002pscd().equals("DISS_CLS");
+			return t.getS002pscd().equals("DISS_CLS_ENG");
 		}).sorted().collect(Collectors.toList());
 
 		item.setTestInfos(testInfoCodes);
@@ -136,8 +142,12 @@ public class InspectionTestService {
 		if (StringUtils.isNotEmpty(param.getSearchAlp())) {
 			searchParam.setIAlhnm(param.getSearchAlp());
 		}
+		if (StringUtils.isNotEmpty(param.getLocale())) {
+			searchParam.setLocale(param.getLocale());
+		}
 
-		List<MWT001R1ListRO> inspectionTestList = db2Mapper.inspectionTestList(searchParam);
+		//List<MWT001R1ListRO> inspectionTestList = db2Mapper.inspectionTestList(searchParam);
+		List<MWT001R1ListRO> inspectionTestList = oracleMapper.inspectionTestListOra(searchParam);
 
 		return inspectionTestList;
 
@@ -293,8 +303,10 @@ public class InspectionTestService {
 		}
 		searchParam.setIIp(IpUtil.getRequestIp(req));
 		searchParam.setIGcd(seq);
+		searchParam.setLocale("ko");
 
-		MWT001R2ViewRO result = db2Mapper.inspectionTestView(searchParam);
+		//MWT001R2ViewRO result = db2Mapper.inspectionTestView(searchParam);
+		MWT001R2ViewRO result = oracleMapper.inspectionTestViewOra(searchParam);
 
 		return result;
 	}
@@ -318,8 +330,10 @@ public class InspectionTestService {
 		}
 		searchParam.setIIp(IpUtil.getRequestIp(req));
 		searchParam.setIGcd(seq);
+		searchParam.setLocale("en");
 
-		MWT001R2ViewRO result = db2Mapper.inspectionTestViewEn(searchParam);
+		//MWT001R2ViewRO result = db2Mapper.inspectionTestViewEn(searchParam);
+		MWT001R2ViewRO result = oracleMapper.inspectionTestViewOra(searchParam);
 		//용기코드명을 영문으로 바꾼다.
 		//result.f010gbnmToEng();
 

@@ -27,5 +27,7 @@ public class MWT001R1SearchPO {
 	private String iIsc = "";
 	/** 질병검사코드 확인 필요 */
 	private String iAlhnm = "";
+
+	private String locale = "ko";
 	
 }
