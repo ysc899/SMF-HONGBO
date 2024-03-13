@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.MainPopupMapper">
+
+
+	<!-- 팝업 로그용 조회 -->
+	<select id="findPopupBySeq" parameterType="HashMap" resultType="mainPopupVO">
+		SELECT *
+		FROM TGEA_MAIN_POPUP
+		WHERE SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 팝업 관리 리스트 -->
+	<select id="findPopupList" parameterType="HashMap" resultType="mainPopupListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'menu-login'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LOGIN_TYPE
+			) as CODE_LOGIN_NAME,
+			ta.CODE_LOGIN_TYPE,
+			ta.START_DATE,
+			ta.END_DATE,
+			ta.PRINT_FLAG,
+			ta.EDIT_DATE 
+		FROM TGEA_MAIN_POPUP ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 팝업 관리 리스트 카운트 -->
+	<select id="countPopupList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TGEA_MAIN_POPUP ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+	
+	<!-- 팝업 상세 조회 -->
+	<select id="findPopupViewBySeq" parameterType="hashmap" resultType="mainPopupViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.TITLE,
+			ta.URL,
+			ta.FILE_PATH,
+			ta.POPUP_IMAGE_WIDTH,
+			ta.POPUP_IMAGE_HEIGHT,
+			ta.PRINT_FLAG,
+			ta.START_DATE,
+			ta.END_DATE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'menu-login'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LOGIN_TYPE
+			) as CODE_LOGIN_NAME,
+			ta.CODE_LOGIN_TYPE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TGEA_MAIN_POPUP ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+
+	
+ 	<!-- 팝업 등록 --> 
+	<insert id="addPopup"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TGEA_MAIN_POPUP
+		(
+			CODE_LANG_TYPE,
+			CODE_LOGIN_TYPE,
+			TITLE,
+			URL,			
+			START_DATE,
+			END_DATE,
+			FILE_PATH,
+			POPUP_IMAGE_WIDTH,
+			POPUP_IMAGE_HEIGHT,
+			PRINT_FLAG,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{codeLoginType},
+			#{title},
+			#{url},
+			#{startDate},
+			#{endDate},
+			#{filePath},
+			#{popupImageWidth},
+			#{popupImageHeight},
+			#{printFlag},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	
+	
+	<!-- 팝업 수정 --> 
+	<update id="editPopup" parameterType="HashMap">
+		UPDATE TGEA_MAIN_POPUP
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			CODE_LOGIN_TYPE= #{codeLoginType},
+			TITLE= #{title},
+			URL= #{url},
+			START_DATE= #{startDate},
+			END_DATE= #{endDate},
+			FILE_PATH= #{filePath},
+			POPUP_IMAGE_WIDTH = #{popupImageWidth},
+			POPUP_IMAGE_HEIGHT = #{popupImageHeight},
+			PRINT_FLAG= #{printFlag},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 팝업  삭제 -->
+	<update id="deletePopup" parameterType="HashMap">
+		UPDATE TGEA_MAIN_POPUP
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 사용자용  -->
+	<select id="findMainUserPopup" resultType="mainPopupUserRO">
+		SELECT 
+			FILE_PATH, TITLE, URL, CODE_LANG_TYPE ,CODE_LOGIN_TYPE,
+			POPUP_IMAGE_WIDTH , POPUP_IMAGE_HEIGHT
+		FROM TGEA_MAIN_POPUP
+		WHERE DELETE_FLAG = 'N'
+		AND now() >= START_DATE 
+		AND END_DATE >= now()
+	</select>
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.BoardDb2MappingMapper">
+
+	<!-- 게시물 db2 맵핑 등록 -->
+	<insert id="addDb2Mapping"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEEA_BOARD_DB2_MAPPING
+		(
+		 	BOARD_SEQ,
+			BOARD_TYPE,
+			S014SEQ
+		)
+		VALUES(
+			#{boardSeq},
+			#{boardType},
+			#{s014seq}
+		)
+	</insert>
+	
+	<select id="countDb2Mapping" resultType="Integer">
+		SELECT COUNT(1) as cnt
+		FROM TEEA_BOARD_DB2_MAPPING
+	</select>
+	
+	<select id="findDb2Mapping" parameterType="hashmap" resultType="db2BoardMappingVO">
+		SELECT *
+		FROM TEEA_BOARD_DB2_MAPPING
+		WHERE BOARD_TYPE = #{boardType}
+		AND BOARD_SEQ = #{boardSeq}
+	</select>
+	
+	
+	
+
+</mapper>

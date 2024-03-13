@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.db2.DB2BoardMapper">
+
+
+
+	<!-- 게시물 내용 등록 -->
+	<select id="addBoardData" statementType="CALLABLE" parameterType="hashmap">
+		{ CALL WEBOBJLIB.MWS014MC
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSeq, mode=IN, jdbcType=DECIMAL, javaType=long},
+				#{iCnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iDno, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iDcl, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSdv, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iPyn, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iPfr, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iPto, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iLco, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iTco, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iTit, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iCon, mode=IN, jdbcType=CLOB, javaType=string}
+			)
+		}
+	</select>
+
+	<!-- 게시물 파일 등록 -->
+	<select id="addBoardFileData" statementType="CALLABLE" parameterType="hashmap">
+		{ CALL WEBOBJLIB.MWS014DC
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSeq, mode=IN, jdbcType=DECIMAL, javaType=long},
+				#{iFsq, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iFpt, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iFnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iFsnm, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+
+	<!-- 게시물 내용 수정 -->
+	<select id="updateBoardData" statementType="CALLABLE" parameterType="hashmap">
+		{ CALL WEBOBJLIB.MWS014MU
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSeq, mode=IN, jdbcType=DECIMAL, javaType=long},
+				#{iCnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iDno, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iDcl, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSdv, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iPyn, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iPfr, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iPto, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iLco, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iTco, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iTit, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iCon, mode=IN, jdbcType=CLOB, javaType=string}
+			)
+		}
+	</select>
+
+	<!-- 게시물 내용 삭제 -->
+	<select id="deleteBoardData" statementType="CALLABLE" parameterType="hashmap">
+		{ CALL WEBOBJLIB.MWS014D
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSeq, mode=IN, jdbcType=DECIMAL, javaType=long}
+			)
+		}
+	</select>
+
+	<!-- 게시물 첨부파일 삭제 -->
+	<select id="deleteBoardFileData" statementType="CALLABLE" parameterType="hashmap">
+		{ CALL WEBOBJLIB.MWS014DD
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSeq, mode=IN, jdbcType=DECIMAL, javaType=long}
+			)
+		}
+	</select>
+
+	<!-- db2 리스트 조회 읽기 -->
+	<select id="findBoardList" statementType="CALLABLE" parameterType="hashmap" resultType="boardDb2SearchRO">
+		{ CALL WEBOBJLIB.MWS014R3
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iDcl, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iTit, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iCon, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iCnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iFwdt, mode=IN, jdbcType=DECIMAL, javaType=int},
+				#{iTwdt, mode=IN, jdbcType=DECIMAL, javaType=int}
+			)
+		}
+	</select>
+	
+	<!-- db2 리스트 상세 조회 -->
+	<select id="findBoardDtl" statementType="CALLABLE" parameterType="hashmap" resultType="boardDb2SearchDtlRO">
+		{ CALL WEBOBJLIB.MWS014R2
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{s014seq, mode=IN, jdbcType=DECIMAL, javaType=long}
+			)
+		}
+	</select>
+	
+	<!-- db2 리스트 파일 조회 -->
+	<select id="findBoardFileDtl" statementType="CALLABLE" parameterType="hashmap" resultType="boardDb2SearchFileRO">
+		{ CALL WEBOBJLIB.MWS014DR
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{s014seq, mode=IN, jdbcType=DECIMAL, javaType=long}
+			)
+		}
+	</select>
+
+</mapper>

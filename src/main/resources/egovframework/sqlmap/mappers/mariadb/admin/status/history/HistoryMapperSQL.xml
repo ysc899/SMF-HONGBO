@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.HistoryMapper">
+
+
+	<!-- 연혁 로그용 조회 -->
+	<select id="findHistoryBySeq" parameterType="HashMap" resultType="historyVO">
+		SELECT *
+		FROM TBAA_HISTORY
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!--  연혁 관리 리스트 -->
+	<select id="findHistoryList" parameterType="HashMap" resultType="historyListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.YEAR, 
+			ta.MONTH, 
+			CONCAT(LEFT(ta.CONTENT, 30), '...') as CONTENT,
+			ta.PRINT_ORDER,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.EDIT_DATE 
+		FROM TBAA_HISTORY ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY ta.YEAR DESC, ta.MONTH DESC, ta.PRINT_ORDER asc
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 연혁 관리 리스트 카운트 -->
+	<select id="countHistoryList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TBAA_HISTORY ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+	
+	<!-- 연혁 기본 정보 상세 조회용 -->
+	<select id="findHistoryViewBySeq" parameterType="hashmap" resultType="historyViewRO">
+		SELECT ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.YEAR, 
+			ta.MONTH, 
+			ta.END_YEAR, 
+			ta.CONTENT,
+			ta.PRINT_ORDER,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TBAA_HISTORY ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 언어코드에 따른 갯수 -->
+	<select id="getPrintOrder" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TBAA_HISTORY
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND YEAR = #{year}
+		AND MONTH = #{month}
+	</select>
+	
+	
+	<!-- 연혁 로그 용 -->	
+	<select id="checkHistoryOrder" parameterType="HashMap" resultType="historyVO">
+		SELECT *
+		FROM TBAA_HISTORY
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND YEAR = #{year}
+		AND MONTH = #{month}
+	</select>
+	
+	<!-- 연혁 출력 순서 증가 업데이트 -->
+	<update id="updateHistoryOrderInc" parameterType="HashMap">
+		UPDATE TBAA_HISTORY
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND YEAR = #{year}
+		AND MONTH = #{month}
+	</update>
+	
+	<!-- 연혁 출력 순서 감소 업데이트 -->
+	<update id="updateHistoryOrderDec" parameterType="HashMap">
+		UPDATE TBAA_HISTORY
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND YEAR = #{year}
+		AND MONTH = #{month}
+	</update>
+	
+
+	
+	<!-- 연혁 등록 -->
+	<insert id="addHistory" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TBAA_HISTORY
+	(
+	    CODE_LANG_TYPE,
+	    CONTENT,
+	    YEAR,
+	    MONTH,
+	    PRINT_ORDER,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	(
+		#{codeLangType},
+		#{content}, 
+		#{year},
+		#{month},
+		#{printOrder},
+		#{regUserId},
+		#{regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</insert>
+	
+	
+	
+	<!-- 연혁 수정 -->
+	<update id="editHistory" parameterType="HashMap">
+		UPDATE TBAA_HISTORY
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			CONTENT= #{content},
+			
+			YEAR= #{year},
+			MONTH= #{month},
+			PRINT_ORDER= #{printOrder},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+
+	<!-- 연혁 삭제 -->
+	<update id="deleteHistory" parameterType="HashMap">
+		UPDATE TBAA_HISTORY
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 사용자용 -->
+	<select id="findUserHitstoryByYears" parameterType="HashMap" resultType="historyUserListRO">
+	SELECT YEAR, MONTH, END_YEAR, CONTENT,  PRINT_ORDER 
+	FROM TBAA_HISTORY
+	WHERE DELETE_FLAG = 'N'
+	AND CODE_LANG_TYPE = #{codeLangType}
+	AND YEAR >= #{start}
+	AND #{end} >= YEAR 
+	ORDER BY YEAR DESC, MONTH DESC, PRINT_ORDER
+	
+	</select>
+	
+	<select id="findUserYearInfoByYears" parameterType="HashMap" resultType="historyUserYearInfoRO">
+	SELECT YEAR, END_YEAR 
+	FROM TBAA_HISTORY
+	WHERE DELETE_FLAG = 'N'
+	AND CODE_LANG_TYPE = #{codeLangType}
+	AND YEAR >= #{start}
+	AND #{end} >= YEAR
+	<!-- GROUP BY YEAR, END_YEAR --><!-- 2020.11.18 수정 -->
+	GROUP BY YEAR
+	ORDER BY YEAR DESC 
+	
+	</select>
+
+</mapper>

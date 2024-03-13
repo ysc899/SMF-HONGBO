@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.EditLogMapper">
+
+	<insert id="insertAddLog" parameterType="logEditVO">
+		INSERT INTO TZBA_LOG_EDIT
+			(
+				AFTER_JSON, 
+				EDIT_DATE, 
+				IP, 
+				MENU_NAME, 
+				LOG_TYPE,
+				CLASS_NAME,
+				EDIT_USER_ID)
+		VALUES(#{afterJson}, now(), #{ip}, #{menuName}, 'add', #{className}, #{editUserId})
+	</insert>
+	
+	<insert id="insertEditLog" parameterType="logEditVO">
+		INSERT INTO TZBA_LOG_EDIT
+			(
+				BEFORE_JSON,
+				AFTER_JSON, 
+				EDIT_DATE, 
+				IP, 
+				MENU_NAME,
+				LOG_TYPE,
+				CLASS_NAME, 
+				EDIT_USER_ID)
+		VALUES(#{beforeJson}, #{afterJson}, now(), #{ip}, #{menuName},'edit', #{className}, #{editUserId})
+	</insert>
+
+
+	<!-- 수정 로그 리스트 -->
+	<select id="findEditLogList" parameterType="HashMap" resultType="logEditListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.LOG_TYPE, 
+			ta.MENU_NAME, 
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.IP,
+			ta.EDIT_DATE 
+		FROM TZBA_LOG_EDIT ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE 1=1
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND ta.EDIT_DATE >= #{startDate}
+		</if>
+		<if test="endDate !=null and ! endDate.equals('')">
+		AND #{endDate} >= ta.EDIT_DATE
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('menu')">
+					AND ta.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('userId')">
+					AND ta.EDIT_USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.EDIT_USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY EDIT_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	<!-- 원클릭 건강정보 관리 리스트 카운트 -->
+	<select id="countEditLogList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TZBA_LOG_EDIT ta
+		WHERE 1=1
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND ta.EDIT_DATE >= #{startDate}
+		</if>
+		<if test="endDate !=null and ! endDate.equals('')">
+		AND #{endDate} >= ta.EDIT_DATE
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('menu')">
+					AND ta.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('userId')">
+					AND ta.EDIT_USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.EDIT_USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 수정 로그 리스트 -->
+	<select id="findDownloadEditLogList" parameterType="HashMap" resultType="logEditViewRO" >
+		SELECT ta.SEQ,
+			ta.MENU_NAME, 
+			ta.LOG_TYPE, 
+			ta.CLASS_NAME, 
+			ta.BEFORE_JSON, 
+			ta.AFTER_JSON, 
+			ta.IP,
+			ta.EDIT_USER_ID,
+			(SELECT NAME FROM TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TZBA_LOG_EDIT ta
+		WHERE 1=1
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND ta.EDIT_DATE >= #{startDate}
+		</if>
+		<if test="endDate !=null and ! endDate.equals('')">
+		AND #{endDate} >= ta.EDIT_DATE
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('menu')">
+					AND ta.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('userId')">
+					AND ta.EDIT_USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.EDIT_USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY EDIT_DATE ASC
+		
+	</select>
+	
+<!-- 수정 로그 조회 -->
+	<select id="findEditLogView" parameterType="HashMap" resultType="logEditViewRO" >
+		SELECT  
+			ta.SEQ,
+			ta.MENU_NAME, 
+			ta.LOG_TYPE, 
+			ta.CLASS_NAME, 
+			ta.BEFORE_JSON, 
+			ta.AFTER_JSON, 
+			ta.IP,
+			ta.EDIT_USER_ID,
+			(SELECT NAME FROM TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TZBA_LOG_EDIT ta
+		WHERE ta.SEQ = #{seq}
+	</select>
+
+
+	<delete id="deleteLogEdit" parameterType="HashMap">
+		DELETE FROM TZBA_LOG_EDIT
+		WHERE SEQ = #{seq}
+	</delete>
+	
+	<select id="deleteCount" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TZBA_LOG_EDIT 
+		WHERE  #{endDate} >= EDIT_DATE
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND EDIT_DATE >= #{startDate}
+		</if>
+	</select>
+
+	<delete id="deleteLogEdits" parameterType="HashMap">
+		DELETE FROM TZBA_LOG_EDIT
+		WHERE  #{endDate} >= EDIT_DATE
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND EDIT_DATE >= #{startDate}
+		</if>
+	</delete>
+
+</mapper>

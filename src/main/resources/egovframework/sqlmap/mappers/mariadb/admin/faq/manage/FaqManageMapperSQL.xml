@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.FaqManageMapper">
+
+
+	<!-- 통합 FAQ 단일 조회 -->
+	<select id="findFaqManageMasterBySeq" parameterType="HashMap" resultType="boardFaQMasterVO">
+		SELECT *
+		FROM TEDA_BOARD_FAQ_MASTER
+		WHERE SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 통합 FAQ 관리 리스트 -->
+	<select id="findFaqManageList" parameterType="HashMap" resultType="faqManageListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.MASTER_NAME,
+			
+			(SELECT COUNT(1) from TEDB_BOARD_FAQ_SLAVE WHERE BOARD_FAQ_MASTER_SEQ = ta.SEQ AND DELETE_FLAG = 'N') AS CONTENT_COUNT,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+						
+			ta.EDIT_DATE 
+		FROM TEDA_BOARD_FAQ_MASTER ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('desc')">
+					AND ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 통합 FAQ 관리 리스트 카운트 -->
+	<select id="countFaqManageList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEDA_BOARD_FAQ_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('desc')">
+					AND ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 통합 FAQ 정보 상세 조회용 -->
+	<select id="findFaqManageViewBySeq" parameterType="hashmap" resultType="faqManageViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.MASTER_NAME,
+			ta.MASTER_DESC,
+			(SELECT COUNT(1) from TEDB_BOARD_FAQ_SLAVE WHERE BOARD_FAQ_MASTER_SEQ = ta.SEQ AND DELETE_FLAG = 'N') AS CONTENT_COUNT,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_USER_ID,
+			ta.EDIT_DATE 
+		FROM TEDA_BOARD_FAQ_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 통합 FAQ 등록 -->
+	<insert id="addFaqManage"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEDA_BOARD_FAQ_MASTER
+		(
+		 	CODE_LANG_TYPE,
+			MASTER_NAME,
+			MASTER_DESC,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{masterName},
+			#{masterDesc},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	<!-- 통합 FAQ 수정 -->
+	<update id="editFaqManage" parameterType="HashMap">
+		UPDATE TEDA_BOARD_FAQ_MASTER
+		SET
+			CODE_LANG_TYPE= #{codeLangType},
+			MASTER_NAME= #{masterName},
+			MASTER_DESC= #{masterDesc},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 통합 FAQ  삭제 -->
+	<update id="deleteFaqManage" parameterType="HashMap">
+		UPDATE TEDA_BOARD_FAQ_MASTER
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+
+</mapper>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+                 http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+
+	<context:component-scan base-package="com.seegene.web">
+		<context:include-filter type="annotation"
+			expression="org.springframework.context.annotation.Configuration" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Repository" />
+		<context:exclude-filter type="regex"
+			expression="(service|controller|dao)\..*" />
+	</context:component-scan>
+	
+	<aop:aspectj-autoproxy/>
+	<bean id="commonAop" class="com.seegene.web.common.AopCommon"/>
+
+	<bean
+		class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+		<property name="interceptors">
+			<list>
+				<ref bean="localeChangeInterceptor" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="localeResolver"
+		class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+	<!-- 쿠키를 이용한 Locale 이용시 <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/> -->
+	<bean id="localeChangeInterceptor"
+		class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+		<property name="paramName" value="language" />
+	</bean>
+
+	<bean
+		class="com.seegene.web.common.ErrorExceptionResolver">
+		<property name="defaultErrorView" value="/user/error/egovError" />
+		<property name="exceptionMappings">
+			<props>
+				<prop key="org.springframework.dao.DataAccessException">/user/error/egovError</prop>
+				<prop key="org.springframework.transaction.TransactionException">/user/error/egovError</prop>
+				<prop key="egovframework.rte.fdl.cmmn.exception.EgovBizException">/user/error/egovError</prop>
+				<prop key="org.springframework.security.AccessDeniedException">/user/error/accessDeniedFailure</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="jsonView"
+		class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
+		<property name="contentType" value="application/json;charset=UTF-8" />
+	</bean>
+
+	<!-- JSON 컨버터 추가 -->
+	<bean id="jacksonMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"></bean>
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="webBindingInitializer">
+            <bean class="egovframework.com.cmm.web.EgovBindingInitializer"/>
+        </property>
+        <property name="messageConverters">
+			<list>
+				<ref bean="jacksonMessageConverter"/>
+			</list> 	
+        </property>
+    </bean>
+
+	<!-- BeanName View -->
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver"
+		p:order="0" />
+
+	<bean class="org.springframework.web.servlet.view.UrlBasedViewResolver"
+		p:order="1" p:viewClass="org.springframework.web.servlet.view.JstlView"
+		p:prefix="/WEB-INF/jsp" p:suffix=".jsp" />
+
+
+
+
+	<mvc:view-controller path="/cmmn/validator.do"
+		view-name="cmmn/validator" />
+</beans>

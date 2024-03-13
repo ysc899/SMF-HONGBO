@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.MainRollingMapper">
+
+
+	<!-- 롤링 로그용 조회 -->
+	<select id="findRollingBySeq" parameterType="HashMap" resultType="mainRollingVO">
+		SELECT *
+		FROM TGAA_MAIN_ROLLING
+		WHERE SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 롤링 관리 리스트 -->
+	<select id="findRollingList" parameterType="HashMap" resultType="mainRollingListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			CONCAT(LEFT(ta.CONTENT, 30), '...') as CONTENT,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			ta.PRINT_ORDER,
+			ta.PRINT_FLAG,
+			ta.EDIT_DATE 
+		FROM TGAA_MAIN_ROLLING ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('url')">
+					AND ta.URL LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.URL LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 롤링 관리 리스트 카운트 -->
+	<select id="countRollingList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TGAA_MAIN_ROLLING ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('url')">
+					AND ta.URL LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.URL LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 롤링 상세 조회 -->
+	<select id="findRollingViewBySeq" parameterType="hashmap" resultType="mainRollingViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.CONTENT,
+			ta.URL,
+			ta.PRINT_ORDER,
+			ta.PRINT_FLAG,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TGAA_MAIN_ROLLING ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+
+	<!-- 언어별 출력 중인 갯수 -->
+	<select id="getPrintOrder" parameterType="String" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TGAA_MAIN_ROLLING
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+	</select>
+	
+	
+	<!-- 롤링 순서 변경 로그 용 -->	
+	<select id="checkRollingOrder" parameterType="HashMap" resultType="mainRollingVO">
+		SELECT *
+		FROM TGAA_MAIN_ROLLING
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND PRINT_ORDER >= #{printOrder}
+	</select>
+	
+	<!-- 롤링 순서 변경 로그 증가 업데이트 -->
+	<update id="updateRollingOrderInc" parameterType="HashMap">
+		UPDATE TGAA_MAIN_ROLLING
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND PRINT_ORDER >= #{printOrder}
+	</update>
+	
+	<!-- 롤링 순서 변경 로그 감소 업데이트 -->
+	<update id="updateRollingOrderDec" parameterType="HashMap">
+		UPDATE TGAA_MAIN_ROLLING
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND PRINT_ORDER >= #{printOrder}
+	</update>
+	
+ 	<!-- 롤링 등록 --> 
+	<insert id="addRolling"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TGAA_MAIN_ROLLING
+		(
+			CODE_LANG_TYPE,
+			CONTENT,
+			URL,
+			PRINT_FLAG,
+			PRINT_ORDER,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{content},
+			#{url},
+			#{printFlag},
+			#{printOrder},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	
+	
+	<!-- 롤링 수정 --> 
+	<update id="editRolling" parameterType="HashMap">
+		UPDATE TGAA_MAIN_ROLLING
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			CONTENT= #{content},
+			URL= #{url},
+			PRINT_FLAG= #{printFlag},
+			PRINT_ORDER= #{printOrder},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 롤링  삭제 -->
+	<update id="deleteRolling" parameterType="HashMap">
+		UPDATE TGAA_MAIN_ROLLING
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 사용자용 -->
+	<!-- 사용자용 롤링 리스트 조회 -->
+	<select id="userRollingList" parameterType="HashMap" resultType="rollingRO">
+		SELECT CODE_LANG_TYPE, CONTENT, URL, PRINT_ORDER
+		FROM TGAA_MAIN_ROLLING
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_FLAG = 'Y'
+	</select>
+	
+
+</mapper>

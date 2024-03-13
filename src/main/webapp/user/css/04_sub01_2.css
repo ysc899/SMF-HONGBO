@@ -1,0 +1,334 @@
+/*03_sub02 css*/
+
+/*banner_bg area*/
+
+.banner_box{
+  position: absolute;
+  height: 220px;
+  overflow: hidden;
+      min-width:1280px;
+  
+  width: 100%;
+/*   top: 150px; */
+  top: 120px;
+  z-index: -9;
+}
+
+.banner_bg{
+  position:absolute;
+  top:0;
+  width:100%;
+  height:220px;
+  background:url(../img/sub/content_bg8.png) no-repeat 0 0;
+  background-size:cover;
+  z-index: -10;
+  transition: all 1.7s ease;
+  transform: scale(1.1) rotate(0deg);
+}
+
+.img_area{
+  position:relative;
+  width:1920px;
+  left:-325px;
+}
+
+.img_area img{
+  margin-top:20px;
+  /* margin-bottom:100px; */
+}
+
+  #container .sub_menu ul > ._submenu_2 > ul > li{
+  	width:150px;
+  	left:-32px;
+  }
+
+/*container*/
+
+#container{
+}
+
+  /*sub_story*/
+
+#container .sub_story{
+/*   border-top:1px solid #999; */
+  margin-top:0px;
+  margin-bottom:50px;
+  /* position: relative;
+  top:-20px;
+  opacity: 0; */
+}
+
+#container .sub_story .notice_table{
+  margin-top:10px;
+  overflow:hidden;
+}
+
+#container .sub_story .notice_table .n_left{
+  font-size:15px;
+  margin-top: 23px;
+  float:left;
+}
+
+#container .sub_story .notice_table .n_left b{
+  font-weight:600;
+  color:#333;
+}
+
+#container .sub_story .notice_table .n_left span{
+  color:#666;
+}
+
+#container .sub_story .notice_table .n_right{
+  float:right;
+  position: relative;
+}
+
+#container .sub_story .notice_table .n_right #search_area{
+  width:100px;
+  height:39.5px;
+  border:1px solid #ccc;
+  color:#707070;
+  font-size:14px;
+  padding-left:10px;
+  background:url(../img/toggle_arrow.png) no-repeat 90% center;
+  background-size:12px;
+  vertical-align:2px;
+}
+
+#container .sub_story .notice_table .n_right #search_select{
+  width:100px;
+  height:39.5px;
+  border:1px solid #ccc;
+  color:#666;
+  font-size:14px;
+  padding-left:10px;
+  background: url(../img/toggle_arrow.png) no-repeat 90% center;
+  background-size:12px;
+  vertical-align: 2px;
+}
+
+#container .sub_story .notice_table .n_right .search_text{
+/*   width:210px; */
+  width:300px;
+  height:36px;
+  border:1px solid #ccc;
+  padding-left:10px;
+  vertical-align: 2px;
+}
+
+#container .sub_story .notice_table .n_right .search_bt{
+  position: absolute;
+  top:0;
+  right:0;
+  width:40px;
+  height:40px;
+  background:url(../img/search3.png) no-repeat 0 0;
+  border:none;
+  cursor:pointer;
+}
+
+#container .sub_story .notice_table table{
+  width:100%;
+  float:left;
+  margin-top:10px;
+  border-collapse: collapse;
+  border-spacing: inherit;
+}
+
+#container .sub_story .notice_table table tr th{
+  font-size:16px;
+  font-weight:600;
+  height:55px;
+  border-top:2px solid #333;
+  border-bottom:1px solid #333;
+  color:#333;
+}
+
+#container .sub_story .notice_table table .notice_header_td > td{
+  background-color:#f7f7f7;
+}
+
+#container .sub_story .notice_table table .notice_header_td > td span{
+  font-size:14px;
+  border:1px solid #d10000;
+  border-radius: 5px;
+  background-color:#d10000;
+  width:40px;
+  height:25px;
+  color:#fff;
+  line-height: 1.6em;
+  display:inline-block;
+}
+
+#container .sub_story .notice_table table tr td{
+  border-top:1px solid #ccc;
+  border-bottom:1px solid #ccc;
+  font-size:15px;
+  height:55px;
+  color:#666;
+  line-height:1.2em;
+}
+
+#container .sub_story .notice_table table tr td.left_td{
+  text-align: left;
+  padding-left:15px;
+}
+
+#container .sub_story .notice_table table tr td a{
+  color:#666!important;
+  font-weight:500!important;
+}
+
+#container .sub_story .notice_table table tr td a:hover{
+  text-decoration: underline;
+}
+
+#container .sub_story .notice_table table tr td img{
+/*   margin-top: 4px; */
+  vertical-align: -3px;
+  
+/*   max-width: 150px; */
+  width: 173px;
+  height: 111px;
+}
+
+#container .sub_story .notice_table table tr td:nth-child(3) > img{
+	width:19px;
+	height:16px;
+	vertical-align:-12px;
+}
+
+#container .sub_story .notice_table .page_number{
+  width:420px;
+  margin-top:30px;
+  clear:both;
+  /*   display:inline-block; */
+  display:inline-block;
+  overflow: hidden;
+  text-align:cetner;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+	#container .sub_story .notice_table .page_number{
+/*   width:265px; */
+/*   width:420px; */
+  width:492px;
+  margin-top:30px;
+  clear:both;
+  /*   display:inline-block; */
+  display:table-caption;
+  padding-left:400px;
+  overflow: hidden;
+}
+}
+
+@supports (-ms-ime-align:auto) {
+  #container .sub_story .notice_table .page_number{
+    display:block;
+    padding-top:30px;
+    margin-left:40%;
+  }
+}
+
+/* 출처: https://virz.net/710 [★익사이팅블로그 - virz.net] */
+@media screen and (min-color-index:0) and(-webkit-min-device-pixel-ratio:0)
+{ @media {
+	#container .sub_story .notice_table .page_number{
+  width:265px;
+  margin-top:30px;
+  clear:both;
+/*   display:inline-block; */
+  display:table-caption;
+  padding-left:400px;
+  overflow: hidden;
+}
+}}
+
+
+#container .sub_story .notice_table .page_number .prev_bt{
+  float:left;
+  cursor:pointer;
+}
+
+#container .sub_story .notice_table .page_number .next_bt{
+  float:right;
+  cursor:pointer;
+}
+
+#container .sub_story .notice_table .page_number ul{
+  display:inline-block;
+  margin-top:10px;
+}
+
+#container .sub_story .notice_table .page_number ul li{
+  font-size:15px;
+  float:left;
+  color:#999;
+  margin-left:5px;
+  margin-right:5px;
+  min-width: 20px;
+  cursor:pointer;
+}
+
+#container .sub_story .notice_table .page_number ul li:hover{
+  color:#333;
+}
+
+#container .sub_story .notice_table .page_number ul li.active{
+  font-weight:600;
+  color:#333;
+}
+
+.tab-content{
+  display: none;
+}
+
+.tab-content.current{
+  display: inherit;
+}
+
+/*white_bg*/
+
+.white_bg{
+  width:100%;
+  position:absolute;
+  top:410px;
+  border-top:1px solid #ccc;
+}
+
+/*Kakao API*/
+
+.map_area{
+  position:relative;
+  left: -315px;
+  width: 1920px;
+  margin-bottom:30px;
+}
+
+#seegene_map{
+  margin-bottom:20px;
+}
+
+#seegene_map2{
+  margin-bottom:20px;
+}
+
+.address_box{
+  border:1px solid #000;
+  background-color:#000;
+  width:100%;
+  height:90px;
+  opacity: 0.8;
+  position:absolute;
+  display:block;
+  z-index: 9;
+  top:360px;
+}
+
+.address_box p{
+  color:#fff;
+  margin-top:20px;
+  line-height:25px;
+  display:inline-block;
+  text-align: left;
+}

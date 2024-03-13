@@ -1,0 +1,190 @@
+/*03_sub02 css*/
+
+/*banner_bg area*/
+
+.banner_box{
+  position: absolute;
+  height: 220px;
+  overflow: hidden;
+      min-width:1280px;
+  
+  width: 100%;
+/*   top: 150px; */
+  top: 120px;
+  z-index: -9;
+}
+
+.banner_bg{
+  position:absolute;
+  top:0;
+  width:100%;
+  height:220px;
+  background:url(../img/sub/content_bg9.png) no-repeat 0 0;
+  background-size:cover;
+  z-index: -10;
+  transition: all 1.7s ease;
+  transform: scale(1.1) rotate(0deg);
+}
+
+  #container .sub_menu ul > ._submenu_2 > ul > li{
+  	width:150px;
+  	left:-35px;
+  }
+
+  #container .sub_menu ul > ._submenu_5 > ul > li{
+  	width:150px;
+  	left:-25px;
+  }
+
+#container .sub_menu ul > li > ul > li{
+  color:#888;
+  font-size:15px;
+  display: block;
+  height:44px;
+  width:150px;
+  left:-30px;
+  border-top:none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin:0;
+  line-height: 2.7em;
+  border:1px solid #ccc;
+  border-bottom:none;
+  background:#fff;
+}
+
+/*container*/
+
+#container{
+}
+
+
+  /*sub_story*/
+
+#container .sub_story{
+/*   border-top:1px solid #999; */
+  margin-top:0px;
+  margin-bottom:60px;
+  overflow:hidden;
+  position: relative;
+  top:-20px;
+  opacity: 0;
+  background:url(../img/sub/greeting.png) no-repeat 100% 85px;
+}
+
+#container .sub_story .left_box{
+  float:left;
+/*   width:800px; */
+  width:574px;
+  margin-top:10px;
+  /* margin-left:100px; */
+  text-align : justify;/* 문자열 좌우 균등 정렬 */
+  /* word-break : keep-all; */
+  word-wrap : break-word;/* 문자열 강제 줄바꿈 */
+  /* opacity:0; */
+}
+
+#container .sub_story .left_box h1{
+  font-size:28px;
+  font-weight:600;
+  margin-bottom:5px;
+  color:#333333;
+}
+
+#container .sub_story .left_box b{
+  /* font-size:28px; */
+  font-size:25px;
+  display: block;
+  margin-top:10px;
+  margin-bottom:30px;
+  text-align: left;
+  color:#333333;
+  width:105%;
+}
+
+#container .sub_story .left_box p{
+  font-size:15px;
+  color:#666666;
+  line-height: 1.5em;
+  margin-bottom:15px;
+}
+
+#container .sub_story .left_box strong{
+  font-weight:600;
+  color:#333333;
+}
+
+#container .sub_story .left_box p.ceo_name{
+  color:#000;
+  font-weight:600;
+  font-size:17px;
+  float:left;
+}
+
+#container .sub_story .left_box p.ceo_name img{
+  margin-left:10px;
+  vertical-align: -10px;
+}
+
+#container .sub_story .right_box{
+  float:right;
+  margin-top:145px;
+  /* margin-top:50px;
+  opacity: 0; */
+}
+
+#container .sub_story .right_box img{
+  /* opacity:0; */
+  width:395px;
+}
+
+.tab-content{
+  display: none;
+}
+
+.tab-content.current{
+  display: inherit;
+}
+
+/*white_bg*/
+
+/*Kakao API*/
+
+body{
+  overflow-x: hidden;
+}
+
+.map_area{
+  position:relative;
+  left: -315px;
+  width: 1920px;
+  margin-bottom:30px;
+}
+
+#seegene_map{
+  margin-bottom:20px;
+}
+
+#seegene_map2{
+  margin-bottom:20px;
+}
+
+.address_box{
+  border:1px solid #000;
+  background-color:#000;
+  width:100%;
+  height:90px;
+  opacity: 0.8;
+  position:absolute;
+  display:block;
+  z-index: 9;
+  top:360px;
+}
+
+.address_box p{
+  color:#fff;
+  margin-top:20px;
+  line-height:25px;
+  display:inline-block;
+  text-align: left;
+}

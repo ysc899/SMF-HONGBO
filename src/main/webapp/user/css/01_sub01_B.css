@@ -1,0 +1,326 @@
+/*03_sub02 css*/
+
+/*banner_bg area*/
+
+.banner_box{
+  position: absolute;
+  height: 220px;
+  overflow: hidden;
+    min-width:1280px;
+  
+  width: 100%;
+/*   top: 150px; */
+  top: 120px;
+  z-index: -9;
+}
+
+.banner_bg{
+  position:absolute;
+  top:0;
+  width:100%;
+  height:220px;
+  background:url(../img/sub/content_bg4.png) no-repeat 0 0;
+  background-size:cover;
+  z-index: -10;
+  transition: all 1.7s ease;
+  transform: scale(1.05) rotate(0deg);
+}
+
+/*container*/
+
+#container{
+}
+
+  /*sub_menu*/
+
+#container .sub_menu ul > li{
+  position: relative;
+}
+
+#container .sub_menu ul > li.depth_01{
+}
+
+#container .sub_menu ul > li.depth_02{
+}
+
+  #container .sub_menu ul > ._submenu_2 > ul > li{
+  width:150px;
+  left:-30px;
+  }
+  
+  #container .sub_menu ul > ._submenu_3 > ul > li{
+  width:150px;
+  left:-37px;
+  }
+
+#container .sub_menu ul > li.depth_04{
+}
+
+#container .sub_menu ul > li:hover ul{
+  display:block;
+}
+
+#container .sub_menu ul > li > ul{
+height: auto;
+position: absolute;
+width: 100%;
+height: 100px;
+margin-top:0px;
+padding-top:9px;
+/* padding-top: 100px; */
+/* top: 30px; */
+/* padding-top: 50px; */
+/* background-color: #fff; */
+display: none;
+z-index: 1;
+}
+
+#container .sub_menu ul > li > ul > li{
+    color:#888;
+    font-size:15px;
+    display: block;
+    height:44px;
+    border-top:none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin:0;
+    line-height: 2.7em;
+    border:1px solid #ccc;
+    border-bottom:none;
+    background:#fff;
+}
+
+#container .sub_menu ul > li > ul > li:last-child{
+  border-bottom:1px solid #ccc;
+}
+
+#container .sub_menu ul > li > ul > li:hover{
+  text-decoration: underline;
+}
+
+
+  /*sub_story*/
+
+#container .sub_story{
+/*   border-top:1px solid #999; */
+  margin-top:0px;
+  margin-bottom:50px;
+  overflow:hidden;
+  position: relative;
+  top:-20px;
+  opacity: 0;
+}
+
+#container .sub_story ul.tabs{
+/*   margin-top:40px; */
+  margin-top:10px;
+  border-collapse: collapse;
+  overflow:hidden;
+}
+
+#container .sub_story ul.tabs li{
+  float:left;
+/*   width:638.5px; */
+  width:548px;
+  border:1px solid #ccc;
+  border-collapse: collapse;
+  height:45px;
+  color:#666666;
+  font-size:16px;
+  cursor:pointer;
+  line-height:45px;
+}
+
+#container .sub_story ul.tabs li.current{
+  color:#fff;
+  font-size:17px;
+  font-weight:400;
+  background-color:#bc1225;
+}
+
+#container .sub_story ul.tabs li:hover{
+  transition-duration: 0.5s;
+}
+
+#container .sub_story ul.tabs li:nth-child(1){
+  border-right:none;
+}
+
+#container .sub_story #hanbando{
+  margin-top:50px;
+  float:left;
+  width:430px;
+  margin-left:75px;
+}
+
+#container .sub_story #search_network{
+  margin-top:50px;
+  float:left;
+/*   width:800px; */
+/*   width:620px; */
+  width:549px;
+  margin-left:44px;
+}
+
+  /*search_table*/
+
+#container .sub_story #search_network .search_table{
+ /* background:url(../img/red_bg.png) no-repeat 0 0; */
+  border-radius: 10px 0 10px 0;
+  height:60px;
+  padding: 0;
+}
+
+#container .sub_story #search_network .search_table table{
+  color:#fff;
+  text-align: left;
+  position: relative;
+  top:15px;
+  width:100%;
+}
+
+#container .sub_story #search_network .search_table table tr th{
+  font-size:17px;
+  font-weight:500;
+  background:#000;
+/*   border-radius:20px 0 0 0; */
+  border-radius:15px 0 0 0;
+  border-bottom:2px solid #333;
+  padding:15px;
+}
+
+#container .sub_story #search_network .search_table table tr th b{
+	font-size:16px;
+}
+
+#container .sub_story #search_network .search_table table tr td{
+	border-bottom:2px solid #333;
+}
+
+#container .sub_story #search_network .search_table table tr td select{
+  color:#000;
+  background: url(../img/select_arrow3.png) no-repeat 100% 42%;
+/*   width:160px; */
+  width:440px;
+  border:none;
+  padding:5px 5px 10px 20px;
+  margin-top:5px;
+  margin-right:10px;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0){
+	#container .sub_story #search_network .search_table table tr td select{
+  color:#000;
+  background: url(../img/select_arrow3.png) no-repeat 100% 40%;
+/*   width:160px; */
+/*   width:90px; */
+  width:433px;
+  border:none;
+  padding:5px 5px 10px 20px;
+  margin-top:5px;
+  margin-right:10px;
+}
+}
+
+#container .sub_story #search_network .search_table table tr td input{
+/*   width:475px; */
+  width:310px;
+  border:none;
+  padding:10px 5px 10px 5px;
+  color:#000;
+}
+
+#container .sub_story #search_network .search_table table tr td input::placeholder{
+  color:#aaa;
+}
+
+#container .sub_story #search_network .search_table table tr td img{
+  position: absolute;
+  top:15px;
+  right:10px;
+}
+
+  /*area_table*/
+
+#container .sub_story #search_network .area_table{
+  margin-top:30px;
+}
+
+#container .sub_story #search_network .area_table table{
+  text-align: left;
+  overflow: hidden;
+  width: 100%;
+  table-layout: fixed;
+}
+
+#container .sub_story #search_network .area_table tr{
+  border-bottom:1px solid #ccc;
+}
+
+#container .sub_story #search_network .area_table tr th{
+  /* border-top:2px solid #333; */
+  border-bottom:1px solid #333;
+  /* padding:20px; */
+  font-size:17px;
+  font-weight:600;
+}
+
+#container .sub_story #search_network .area_table tr td{
+  /* border-bottom:1px solid #ccc; */
+  display: inline-block;
+/*   padding:15px 20px; */
+  padding:15px 0px 15px 20px;
+}
+
+#container .sub_story #search_network .area_table tr td.people_td{
+  padding:15px;
+  width:100px;
+}
+
+#container .sub_story #search_network .area_table tr td.people_td2{
+/*   width:600px; */
+}
+
+#container .sub_story #search_network .area_table tr td p{
+  margin-bottom:10px;
+  font-size:15px;
+  font-weight:600;
+  color:#414141;
+}
+
+#container .sub_story #search_network .area_table tr td p img{
+/*   vertical-align: -4px; */
+/*   margin-right:7px; */
+  vertical-align: -3px;
+  margin-right:6px;
+}
+
+#container .sub_story #search_network .area_table tr td span{
+  font-size:14px;
+  color:#666;
+  line-height: 20px;
+}
+
+#container .sub_story #search_network .area_table tr td .king_name,
+#container .sub_story #search_network .area_table tr td .king_address{
+  margin-left:-20px;
+}
+
+.tab-content{
+  display: none;
+}
+
+.tab-content.current{
+  display: inherit;
+}
+
+/*map*/
+
+/* #hanbando{
+  width:430px;
+  height:763px;
+  background:url(../img/sub/c_map02.png) no-repeat 0 0;
+} */
+
+
+/*white_bg*/

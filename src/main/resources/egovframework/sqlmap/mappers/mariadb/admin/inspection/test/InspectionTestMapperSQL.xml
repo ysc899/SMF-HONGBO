@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.InspectionTestMapper">
+
+
+	<!-- 검사코드 수정 로그 단일 조회 -->
+	<select id="findInspTestEditBySeq" parameterType="HashMap" resultType="inspectionTestEditVO">
+		SELECT *
+		FROM TFBA_INSP_TEST_EDIT
+		WHERE SEQ = #{seq}
+	</select>
+	
+		<!-- 검사항목 수정 요청 내용 등록 -->
+	<insert id="addInspTestEdit" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TFBA_INSP_TEST_EDIT
+		(
+		    CODE_LANG_TYPE,
+		    CODE_EDIT_ST_TYPE,
+		    TEST_NAME,
+		    F010GCD,
+		    T001SAV,
+<!-- 		    T001DAY, -->
+		    T001CONT,
+		    T001ETC,
+			T001REF,
+			T001URL,
+		    EDIT_USER_ID,
+		    REG_USER_ID,
+		    REG_DATE,
+		    EDIT_DATE,
+		    DELETE_FLAG
+		)
+		VALUES
+		(
+			#{codeLangType},
+			#{codeEditStType},
+			#{testName},
+			#{f010gcd},
+			#{t001sav}, 
+<!-- 			#{t001day}, -->
+			#{t001cont},
+			#{t001etc},
+			#{t001ref},
+			#{t001url},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	<!-- 검사항목 수정 요청 이력 리스트 -->
+	<select id="findInspectionEditLog" parameterType="HashMap" resultType="inspectionTestEditLogRO" >
+		SELECT  
+			ta.SEQ,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'inspEditSt'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_EDIT_ST_TYPE
+			) as CODE_EDIT_ST_NAME,
+			ta.CODE_EDIT_ST_TYPE, 
+			ta.REG_USER_ID, 
+			(SELECT NAME FROM TAAA_ADMIN_USER WHERE USER_ID = ta.REG_USER_ID) as REG_USER_NAME,
+			ta.REG_DATE 
+		FROM TFBA_INSP_TEST_EDIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.F010GCD = #{f010gcd}
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		ORDER BY ta.SEQ DESC
+	</select>
+	
+	<!-- 기존 등록 된 것이 있는지  확인 -->
+	<select id="countByF010gcd" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TFBA_INSP_TEST_EDIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.F010GCD = #{f010gcd}
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+	<!-- 검사항목 수정 관리 리스트 -->
+	<select id="findInspectionEditList" parameterType="HashMap" resultType="inspectionListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TEST_NAME, 
+			ta.F010GCD, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'inspEditSt'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_EDIT_ST_TYPE
+			) as CODE_EDIT_ST_NAME,
+			ta.CODE_EDIT_ST_TYPE,
+			ta.REG_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.REG_USER_ID) as REG_USER_NAME,
+			ta.REG_DATE 
+		FROM TFBA_INSP_TEST_EDIT ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeInspEditSt !=null and ! codeInspEditSt.equals('')">
+			AND ta.CODE_EDIT_ST_TYPE = #{codeInspEditSt}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('code')">
+					AND ta.F010GCD like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.TEST_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.F010GCD like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.TEST_NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY ta.SEQ DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	
+	<!-- 검사항목 수정 관리 리스트 카운트 -->
+	<select id="countInspectionEditList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TFBA_INSP_TEST_EDIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeInspEditSt !=null and ! codeInspEditSt.equals('')">
+			AND ta.CODE_EDIT_ST_TYPE = #{codeInspEditSt}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('code')">
+					AND ta.F010GCD like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.TEST_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.F010GCD like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.TEST_NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+
+	
+	<!-- 검사항목 수정 관리 상세정보 -->
+	<select id="findInspectionEditInfo" parameterType="HashMap" resultType="inspectionTestEditViewRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TEST_NAME, 
+			ta.F010GCD, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'inspEditSt'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_EDIT_ST_TYPE
+			) as CODE_EDIT_ST_NAME,
+			ta.CODE_EDIT_ST_TYPE,
+			ta.T001SAV,
+<!-- 			ta.T001DAY, -->
+			ta.T001CONT,
+			ta.T001ETC,
+			ta.T001REF,
+			ta.T001URL,
+			ta.REG_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.REG_USER_ID) as REG_USER_NAME,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.REG_DATE,
+			ta.EDIT_DATE
+		FROM TFBA_INSP_TEST_EDIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 검사항목  수정  적용-->
+	<update id="applyInspectionEdit" parameterType="HashMap">
+		UPDATE TFBA_INSP_TEST_EDIT
+		SET 
+			CODE_EDIT_ST_TYPE=#{codeEditStType},
+			T001SAV=#{t001sav},
+<!-- 			T001DAY=#{t001day}, -->
+			T001CONT=#{t001cont},
+			T001ETC=#{t001etc},
+			T001REF=#{t001ref},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_EDIT_ST_TYPE = 'wait'
+	</update>
+	
+	
+	<update id="rejectInspectionEdit" parameterType="HashMap">
+		UPDATE TFBA_INSP_TEST_EDIT
+		SET 
+			CODE_EDIT_ST_TYPE=#{codeEditStType},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_EDIT_ST_TYPE = 'wait'
+	</update>
+	
+	<!-- 검사항목 수정 관리 상세정보 엑셀 다운로드용 -->
+	<select id="findInspectionEditInfoExcelList" parameterType="HashMap" resultType="inspectionTestEditViewRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TEST_NAME, 
+			ta.F010GCD, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'inspEditSt'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_EDIT_ST_TYPE
+			) as CODE_EDIT_ST_NAME,
+			ta.CODE_EDIT_ST_TYPE,
+			ta.T001SAV,
+<!-- 			ta.T001DAY, -->
+			ta.T001CONT,
+			ta.T001ETC,
+			ta.T001REF,
+			ta.REG_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.REG_USER_ID) as REG_USER_NAME,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.REG_DATE,
+			ta.EDIT_DATE
+		FROM TFBA_INSP_TEST_EDIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeInspEditSt !=null and ! codeInspEditSt.equals('')">
+			AND ta.CODE_EDIT_ST_TYPE = #{codeInspEditSt}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('code')">
+					AND ta.F010GCD like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.TEST_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.F010GCD like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.TEST_NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY ta.SEQ DESC
+	</select>
+	
+
+</mapper>

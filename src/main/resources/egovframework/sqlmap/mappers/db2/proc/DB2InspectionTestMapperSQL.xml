@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.db2.DB2InspectionTestMapper">
+
+	<!-- DB2 코드 조회 -->
+	<select id="findInspectionTestCodes" parameterType="list" resultType="db2CodeRO">
+		SELECT S002SCD, S002CNM, S002PSCD, S002SEQ
+		FROM WEBDBLIB.MWS002M@
+		WHERE
+		S002PSCD in
+		<foreach collection="list" item="item" separator="," open="("
+				 close=")">
+			#{item}
+		</foreach>
+		AND S002UYN = 'Y'
+	</select>
+
+
+	<!-- DB2 코드 조회 영문용 -->
+	<select id="findInspectionTestCodesEn" parameterType="list" resultType="db2CodeRO">
+		SELECT S002SCD, S002CNM, S002PSCD, S002SEQ
+		FROM WEBDBLIB.MWS002MEN@
+		WHERE
+		S002PSCD in
+		<foreach collection="list" item="item" separator="," open="("
+				 close=")">
+			#{item}
+		</foreach>
+		AND S002UYN = 'Y'
+	</select>
+
+
+	<!-- 검사 항목 조회 관련 리스트 조회 -->
+	<select id="inspectionTestList" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R1ListRO">
+		{ CALL WEBOBJLIB.MWT001R1
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSerfnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSernm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iHak, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIsc, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iAlhnm, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+
+	<!-- 영문 EN 검사 항목 조회 관련 리스트 조회 -->
+	<select id="inspectionTestListEn" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R1ListRO">
+		{ CALL WEBOBJLIB.MWT001R1EN
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iSerfnm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSernm, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iHak, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIsc, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iAlhnm, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+
+	<!-- 검사 항목 조회 관련 상세 조회 -->
+	<select id="inspectionTestView" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R2ViewRO">
+		{ CALL WEBOBJLIB.MWT001R2
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iGcd, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+
+	<!-- 영문 EN 검사 항목 조회 관련 상세 조회 -->
+	<select id="inspectionTestViewEn" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R2ViewRO">
+		{ CALL WEBOBJLIB.MWT001R2EN
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iGcd, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+			}
+	</select>
+	
+	<!-- 검사 항목 추가 가능 리스트 조회 -->
+	<select id="inspectionAddTestList" statementType="CALLABLE" parameterType="hashmap" resultType="mwt001R3ListRO">
+		{ CALL WEBOBJLIB.MWT001R3
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+	
+	
+	<!-- 검사 항목 조회 관련 수정 적용 -->
+	<select id="inspectionTestUpdate" statementType="CALLABLE" parameterType="hashmap">
+		{ CALL WEBOBJLIB.MWT001RCU
+			(
+				#{iCor, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUid, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iIp, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{oMsgcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{oErrcod, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{iGcd, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iSav, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iRef, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iCont, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iEtc, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{iUrl, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+
+</mapper>

@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.InspectionVesselMapper">
+
+
+	<!-- 검체용기 로그용 조회 -->
+	<select id="findVesselBySeq" parameterType="HashMap" resultType="vesselVO">
+		SELECT *
+		FROM TFDA_INSP_VESSEL
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!--  검체용기 관리 리스트 -->
+	<select id="findVesselList" parameterType="HashMap" resultType="inspectionVesselListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.INSPECTION_NAME, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.EDIT_DATE 
+		FROM TFDA_INSP_VESSEL ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('testName')">
+					AND ta.INSPECTION_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.INSPECTION_NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY ta.PRINT_ORDER ASC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 검체용기 관리 리스트 카운트 -->
+	<select id="countVesselList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TFDA_INSP_VESSEL ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('testName')">
+					AND ta.INSPECTION_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.INSPECTION_NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 검체용기 기본 정보 상세 조회용 -->
+	<select id="findVesselViewBySeq" parameterType="hashmap" resultType="inspectionVesselViewRO">
+		SELECT ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.TITLE, 
+			ta.SUB_TITLE, 
+			ta.INSPECTION_NAME, 
+			ta.CODE_VESSELSC_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'vesselSC'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_VESSELSC_TYPE
+			) as CODE_VESSELSC_NAME,
+			ta.COMMENT,
+			ta.FILE_PATH,
+			ta.PRINT_ORDER,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TFDA_INSP_VESSEL ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 검체용기 파일라운로드용 조회용 -->
+<!-- 	<select id="findVesselFileInfoBySeq" parameterType="hashmap" resultType="inspectionVesselVO"> -->
+<!-- 		SELECT ta.SEQ,  -->
+<!-- 			ta.FILE_PATH,  -->
+<!-- 			ta.FILE_NAME  -->
+<!-- 		FROM TFDA_INSP_VESSEL ta -->
+<!-- 		WHERE DELETE_FLAG = 'N' -->
+<!-- 		AND SEQ = #{seq} -->
+<!-- 	</select> -->
+	
+	
+	<!-- 언어코드에 따른 갯수 -->
+	<select id="getPrintOrder" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TFDA_INSP_VESSEL
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+	
+	<!-- 검사의뢰서 순서 변경 로그 용 -->	
+	<select id="checkVesselOrder" parameterType="HashMap" resultType="vesselVO">
+		SELECT *
+		FROM TFDA_INSP_VESSEL
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+	<!-- 검사의뢰서 출력 순서 증가 업데이트 -->
+	<update id="updateVesselOrderInc" parameterType="HashMap">
+		UPDATE TFDA_INSP_VESSEL
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</update>
+	
+	<!-- 검사의뢰서 출력 순서 감소 업데이트 -->
+	<update id="updateVesselOrderDec" parameterType="HashMap">
+		UPDATE TFDA_INSP_VESSEL
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</update>
+
+	
+	<!-- 검체용기 등록 -->
+	<insert id="addVessel" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TFDA_INSP_VESSEL
+	(
+	    CODE_LANG_TYPE,
+	    TITLE,
+	    SUB_TITLE,
+	    INSPECTION_NAME,
+	    CODE_VESSELSC_TYPE,
+	    COMMENT,
+	    FILE_PATH,
+	    PRINT_ORDER,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	(
+		#{codeLangType},
+		#{title}, 
+		#{subTitle},
+		#{inspectionName},
+		#{codeVesselscType},
+		#{comment},
+		#{filePath},
+		#{printOrder},
+		#{regUserId},
+		#{regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</insert>
+	
+	
+	
+	<!-- 검체용기 수정 -->
+	<update id="editVessel" parameterType="HashMap">
+		UPDATE TFDA_INSP_VESSEL
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			TITLE= #{title},
+			SUB_TITLE= #{subTitle},
+			INSPECTION_NAME= #{inspectionName},
+			CODE_VESSELSC_TYPE= #{codeVesselscType},
+			COMMENT= #{comment},
+			FILE_PATH= #{filePath},
+			PRINT_ORDER= #{printOrder},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+
+	<!-- 검체용기 삭제 -->
+	<update id="deleteVessel" parameterType="HashMap">
+		UPDATE TFDA_INSP_VESSEL
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 사용자용 -->
+	<!-- 검체용기 모든 리스트용 -->
+	<select id="findUserAllVesselList" parameterType="HashMap" resultType="vesselUserAllListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE 
+		FROM TFDA_INSP_VESSEL ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		ORDER BY ta.PRINT_ORDER ASC
+	
+	</select>	
+	
+	
+	<!--  검체용기 사용자 리스트 -->
+	<select id="findUserVesselList" parameterType="HashMap" resultType="vesselUserListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.SUB_TITLE,
+			ta.INSPECTION_NAME,
+			ta.FILE_PATH
+		FROM TFDA_INSP_VESSEL ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+		AND (
+				ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+			OR
+				ta.INSPECTION_NAME like CONCAT('%', #{searchKeyword}, '%')
+		)
+		</if>
+		ORDER BY ta.PRINT_ORDER ASC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+		<!-- 검체용기 파일라운로드용 조회용 -->
+	<select id="findUserVesselListCount" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TFDA_INSP_VESSEL ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+		AND (
+				ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+			OR
+				ta.INSPECTION_NAME like CONCAT('%', #{searchKeyword}, '%')
+		)
+		</if>
+	</select>
+	<!-- 검체용기 사용자용 기본 정보 상세 조회용 -->
+	<select id="findUserVesselViewBySeq" parameterType="hashmap" resultType="vesselUserViewRO">
+		SELECT ta.SEQ, 
+			ta.TITLE, 
+			ta.SUB_TITLE, 
+			ta.INSPECTION_NAME, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'vesselSC'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_VESSELSC_TYPE
+			) as CODE_VESSELSC_NAME,
+			ta.COMMENT,
+			ta.FILE_PATH
+		FROM TFDA_INSP_VESSEL ta
+		WHERE DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+		<!-- 이전 다음 확인용 -->
+	<select id="findUserVesselNextPreBySeq" parameterType="HashMap" resultType="vesselUserNextPreRO">
+		(
+			SELECT SEQ, 'pre' as TYPE
+			FROM TFDA_INSP_VESSEL
+			WHERE #{seq} > SEQ
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND DELETE_FLAG = 'N'
+			ORDER BY PRINT_ORDER DESC
+			LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT SEQ, 'next' as TYPE
+			FROM TFDA_INSP_VESSEL
+			WHERE SEQ > #{seq}
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND DELETE_FLAG = 'N'
+			ORDER BY PRINT_ORDER ASC
+			LIMIT 1
+		)
+	</select>
+
+</mapper>

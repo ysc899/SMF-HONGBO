@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.StaffsMapper">
+
+
+	<!-- 의료진 현황 로그용 조회 -->
+	<select id="findStaffsBySeq" parameterType="HashMap" resultType="staffsVO">
+		SELECT *
+		FROM TCAA_STAFFS
+		WHERE SEQ = #{seq}
+	</select>
+	<!-- 의료진현황 상세 정보 로그용 조회 -->
+	<select id="findStaffsInfoByStaffsSeq" parameterType="HashMap" resultType="staffsInfoVO">
+		SELECT *
+		FROM TCAB_STAFFS_INFO
+		WHERE STAFFS_SEQ = #{seq}
+	</select>
+	<!-- 의료진현황 이력 정보 로그용 조회 -->
+	<select id="findStaffsHistoryByStaffsSeq" parameterType="HashMap" resultType="staffsHistoryVO">
+		SELECT *
+		FROM TCAC_STAFFS_HISTORY
+		WHERE STAFFS_SEQ = #{seq}
+	</select>
+	
+	<!--  의료진 현황 관리 리스트 -->
+	<select id="findStaffsList" parameterType="HashMap" resultType="staffsListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			tb.POSITION, 
+			tb.NAME, 
+			ta.PRINT_ORDER,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+			) as CODE_CENTER_NAME,
+			ta.CODE_CENTER_TYPE,
+			CASE 
+				WHEN ta.CODE_PART_TYPE is null then '' 
+				ELSE (
+					SELECT tba.SLAVE_CODE_NAME
+					FROM TABB_CODE_SLAVE tba
+					WHERE tba.MASTER_CODE = 'staffPart'
+					AND tba.DELETE_FLAG = 'N'
+					AND tba.SLAVE_CODE = ta.CODE_PART_TYPE
+				) 
+			END AS CODE_PART_NAME,
+			ta.CODE_PART_TYPE,
+			ta.MASTER_FLAG,
+			ta.EDIT_DATE 
+		FROM TCAA_STAFFS ta,
+			TCAB_STAFFS_INFO tb,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = tb.STAFFS_SEQ
+		AND tb.CODE_LANG_TYPE = 'ko'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND tb.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY ta.CODE_CENTER_TYPE DESC, ta.CODE_PART_TYPE, ta.MASTER_FLAG DESC, ta.PRINT_ORDER
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 의료진 현황 관리 리스트 카운트 -->
+	<select id="countStaffsList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TCAA_STAFFS ta,
+			TCAB_STAFFS_INFO tb
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = tb.STAFFS_SEQ
+		AND tb.CODE_LANG_TYPE = 'ko'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND tb.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+	
+	<!-- 의료진 현황 기본 정보 상세 조회용 -->
+	<select id="findStaffsViewBySeq" parameterType="hashmap" resultType="staffsViewRO">
+		SELECT ta.SEQ, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+			) as CODE_CENTER_NAME,
+			ta.CODE_CENTER_TYPE,
+			CASE 
+				WHEN ta.CODE_PART_TYPE is null then '' 
+				ELSE (
+					SELECT tba.SLAVE_CODE_NAME
+					FROM TABB_CODE_SLAVE tba
+					WHERE tba.MASTER_CODE = 'staffPart'
+					AND tba.DELETE_FLAG = 'N'
+					AND tba.SLAVE_CODE = ta.CODE_PART_TYPE
+				) 
+			END AS CODE_PART_NAME,
+			ta.CODE_PART_TYPE,
+			ta.PRINT_ORDER, 
+			ta.IMAGE_PATH, 
+			ta.THUM_IMAGE_PATH, 
+			ta.MASTER_FLAG,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TCAA_STAFFS ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 의료진 현황 언어별 상세 정보 조회용 -->
+	<select id="findStaffsInfoViewByStaffsSeq" parameterType="hashmap" resultType="staffsInfoViewRO">
+		SELECT ta.SEQ, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_Name,
+			ta.CODE_LANG_TYPE,
+			ta.POSITION, 
+			ta.NAME, 
+			ta.DEGREE, 
+			ta.SPECIALTY,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TCAB_STAFFS_INFO ta
+		WHERE DELETE_FLAG = 'N'
+		AND STAFFS_SEQ = #{seq}
+	</select>
+	
+	<!-- 의료진 현황 약력 상세 조회용 -->
+	<select id="findStaffsHistoryViewByStaffsSeq" parameterType="hashmap" resultType="staffsHistoryViewRO">
+		SELECT ta.SEQ, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_Name,
+			ta.CODE_LANG_TYPE,
+			ta.NOW_FLAG, 
+			ta.CONTENT, 
+			ta.COMMENT, 
+			ta.PRINT_ORDER,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TCAC_STAFFS_HISTORY ta
+		WHERE DELETE_FLAG = 'N'
+		AND STAFFS_SEQ = #{seq}
+		ORDER BY ta.NOW_FLAG, ta.PRINT_ORDER
+	</select>
+	
+	<!-- 코드 값에  따른 갯수 -->
+	<select id="getPrintOrder" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TCAA_STAFFS
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_CENTER_TYPE = #{codeCenterType}
+		AND CODE_PART_TYPE = #{codePartType}
+		AND MASTER_FLAG = #{masterFlag}
+	</select>
+	
+	
+	<!-- 의료진 현황 로그 용 -->	
+	<select id="checkStaffsOrder" parameterType="HashMap" resultType="historyVO">
+		SELECT *
+		FROM TCAA_STAFFS
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_CENTER_TYPE = #{codeCenterType}
+		AND CODE_PART_TYPE = #{codePartType}
+		AND MASTER_FLAG = #{masterFlag}
+	</select>
+	
+	<!-- 의료진 현황 출력 순서 증가 업데이트 -->
+	<update id="updateStaffsOrderInc" parameterType="HashMap">
+		UPDATE TCAA_STAFFS
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_CENTER_TYPE = #{codeCenterType}
+		AND CODE_PART_TYPE = #{codePartType}
+		AND MASTER_FLAG = #{masterFlag}
+	</update>
+	
+	<!-- 의료진 현황 출력 순서 감소 업데이트 -->
+	<update id="updateStaffsOrderDec" parameterType="HashMap">
+		UPDATE TCAA_STAFFS
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_CENTER_TYPE = #{codeCenterType}
+		AND CODE_PART_TYPE = #{codePartType}
+		AND MASTER_FLAG = #{masterFlag}
+	</update>
+	
+
+	
+	<!-- 의료진 현황 등록 -->
+	<insert id="addStaffs" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TCAA_STAFFS
+	(
+	    CODE_CENTER_TYPE,
+	    CODE_PART_TYPE,
+	    MASTER_FLAG,
+	    NAME,
+	    PRINT_ORDER,
+	    IMAGE_PATH,
+	    THUM_IMAGE_PATH,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	(
+		#{codeCenterType},
+		#{codePartType}, 
+		#{masterFlag},
+		#{name},
+		#{printOrder},
+		#{imagePath},
+		#{thumImagePath},
+		#{regUserId},
+		#{regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</insert>
+	
+	<!-- 의료진 현황 언어별 정보 등록 -->
+	<insert id="addStaffsInfos" parameterType="java.util.List">
+	INSERT INTO TCAB_STAFFS_INFO
+	(
+	    CODE_LANG_TYPE,
+	    POSITION,
+	    NAME,
+	    DEGREE,
+	    SPECIALTY,
+	    STAFFS_SEQ,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	<foreach collection="list" item="item" separator=",">
+	(
+		#{item.codeLangType},
+		#{item.position}, 
+		#{item.name},
+		#{item.degree},
+		#{item.specialty},
+		#{item.staffsSeq},
+		#{item.regUserId},
+		#{item.regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</foreach>
+	</insert>
+	
+	<!-- 의료진 현황 약력 정보 등록 -->
+	<insert id="addStaffsHistory" parameterType="java.util.List">
+	INSERT INTO TCAC_STAFFS_HISTORY
+	(
+	    CODE_LANG_TYPE,
+	    NOW_FLAG,
+	    CONTENT,
+	    COMMENT,
+	    PRINT_ORDER,
+	    STAFFS_SEQ,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	<foreach collection="list" item="item" separator=",">
+	(
+		#{item.codeLangType},
+		#{item.nowFlag}, 
+		#{item.content},
+		#{item.comment},
+		#{item.printOrder},
+		#{item.staffsSeq},
+		#{item.regUserId},
+		#{item.regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</foreach>
+	</insert>
+	
+	
+	
+	<!-- 의료진 현황 수정 -->
+	<update id="editStaffs" parameterType="HashMap">
+		UPDATE TCAA_STAFFS
+		SET 
+			CODE_CENTER_TYPE= #{codeCenterType},
+			CODE_PART_TYPE= #{codePartType},
+			MASTER_FLAG= #{masterFlag},
+			PRINT_ORDER= #{printOrder},
+			IMAGE_PATH= #{imagePath},
+			THUM_IMAGE_PATH= #{thumImagePath},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 의료진 현황 언어벼 정보 수정 -->
+	<update id="editStaffsInfos" parameterType="HashMap">
+		UPDATE TCAB_STAFFS_INFO
+		SET 
+			POSITION= #{position},
+			NAME= #{name},
+			DEGREE= #{degree},
+			SPECIALTY= #{specialty},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND STAFFS_SEQ = #{staffsSeq}
+	</update>
+	
+	
+	<!-- 의료진 현황 이력 정보 수정 -->
+	<update id="editStaffsHistory" parameterType="HashMap">
+		UPDATE TCAC_STAFFS_HISTORY
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			NOW_FLAG= #{nowFlag},
+			CONTENT= #{content},
+			COMMENT= #{comment},
+			PRINT_ORDER= #{printOrder},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND STAFFS_SEQ = #{staffsSeq}
+	</update>
+	
+	
+
+	<!-- 의료진 현황 삭제 -->
+	<update id="deleteStaffs" parameterType="HashMap">
+		UPDATE TCAA_STAFFS
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 의료진 현황 이력 삭제 -->
+	<update id="deleteStaffsHistory" parameterType="HashMap">
+		UPDATE TCAC_STAFFS_HISTORY
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 사용자용 -->
+	<!-- 사용자용 의료진 현황 리스트 -->
+	<select id="findUserStaffsList" parameterType="HashMap" resultType="staffsUserListRO">
+		SELECT  
+			ta.SEQ,
+			ta.CODE_CENTER_TYPE, 
+			ta.CODE_PART_TYPE,
+			ta.MASTER_FLAG,
+			ta.THUM_IMAGE_PATH,
+			ta.PRINT_ORDER,
+			tb.POSITION,
+			tb.NAME,
+			tb.DEGREE,
+			tb.SPECIALTY,
+			(SELECT COUNT(1) FROM TCAC_STAFFS_HISTORY tc WHERE  tc.DELETE_FLAG = 'N' AND tc.STAFFS_SEQ = ta.SEQ AND tc.CODE_LANG_TYPE = #{codeLangType}) as HISTORY_COUNT
+		FROM TCAA_STAFFS ta,
+			TCAB_STAFFS_INFO tb
+		WHERE ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+		AND ta.SEQ = tb.STAFFS_SEQ
+		AND tb.CODE_LANG_TYPE = #{codeLangType}
+		
+		ORDER BY ta.PRINT_ORDER
+	</select>
+	
+	<!-- 의료진 현황 기본 정보 상세 조회용 -->
+	<select id="findUserStaffsViewBySeq" parameterType="hashmap" resultType="staffsUserViewRO">
+		SELECT  
+			ta.SEQ,
+			ta.CODE_PART_TYPE,
+			ta.IMAGE_PATH,
+			tb.POSITION,
+			tb.NAME,
+			tb.DEGREE,
+			tb.SPECIALTY
+		FROM TCAA_STAFFS ta,
+			TCAB_STAFFS_INFO tb
+		WHERE ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+		AND ta.SEQ = tb.STAFFS_SEQ
+		AND tb.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.SEQ = #{staffsSeq}
+	</select>
+	
+	<!-- 사용자용 의료진 현황  약력 상세 조회용 -->
+	<select id="findUserStaffsHistoryViewByStaffsSeq" parameterType="hashmap" resultType="staffsUserHistoryListRO">
+		SELECT 
+			ta.NOW_FLAG, 
+			ta.CONTENT, 
+			ta.COMMENT, 
+			ta.PRINT_ORDER
+		FROM TCAC_STAFFS_HISTORY ta
+		WHERE DELETE_FLAG = 'N'
+		AND STAFFS_SEQ = #{staffsSeq}
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+
+</mapper>

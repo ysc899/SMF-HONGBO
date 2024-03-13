@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.MenuAdminMapper">
+
+
+	<!-- 관리자 메뉴 리스트 -->
+	<select id="findAllAdminMenu"  resultType="menuAdminVO">
+			SELECT
+				SEQ, MENU_NAME, MENU_ORDER, PARENT_SEQ
+			FROM TACA_ADMIN_MENU
+			WHERE DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 단일 조회 -->
+	<select id="findBySeq" parameterType="HashMap" resultType="menuAdminVO">
+		SELECT *
+		FROM TACA_ADMIN_MENU
+		WHERE SEQ = #{seq}
+		
+	</select>
+	
+	<!-- 관리자 메뉴 관리 리스트 -->
+	<select id="findAdminMenuList" parameterType="HashMap" resultType="menuAdminListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, tab.SEQ, tab.MENU_NAME, tab.PARENT_NAME, tab.MENU_ORDER, tab.EDIT_DATE
+		FROM (
+			SELECT taa.SEQ, taa.MENU_NAME, taa.PARENT_NAME, taa.MENU_ORDER, taa.EDIT_DATE
+			FROM (
+				SELECT ta.seq, 
+					ta.MENU_NAME, 
+					COALESCE(tb.MENU_NAME, '-') as PARENT_NAME, 
+					ta.MENU_ORDER , 
+					CASE 
+						WHEN ta.PARENT_SEQ is null then ta.MENU_ORDER * 10 
+						ELSE (tb.MENU_ORDER*10)+ta.MENU_ORDER 
+					END AS SORT,
+					ta.EDIT_DATE
+				FROM TACA_ADMIN_MENU ta
+					LEFT OUTER JOIN
+					TACA_ADMIN_MENU tb
+				ON ta.PARENT_SEQ = tb.SEQ
+				WHERE ta.DELETE_FLAG = 'N'
+				<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+					<choose>
+						<when test="searchOption != null and searchOption.equals('parent')">
+							AND tb.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<when test="searchOption != null and searchOption.equals('name')">
+							AND ta.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<otherwise>
+							AND (
+									ta.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+								OR
+									tb.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+							)
+						</otherwise>
+					</choose>
+				</if>
+			) taa
+			ORDER BY taa.SORT
+			LIMIT 18446744073709551615	
+		) tab,
+		(SELECT @ROWNUM := #{offset}) TMP
+
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	<!-- 관리자 메뉴 관리 리스트 카운트 -->
+	<select id="countAdminMenuList" parameterType="HashMap" resultType="Integer" >
+		SELECT count(1) as CNT
+		FROM TACA_ADMIN_MENU ta
+			LEFT OUTER JOIN
+			TACA_ADMIN_MENU tb
+		ON ta.PARENT_SEQ = tb.SEQ
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('parent')">
+					AND tb.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							tb.MENU_NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 관리자 메뉴 상세 조회용 -->
+	<select id="findAdminMenuInfo" parameterType="HashMap" resultType="menuAdminViewRO">
+		SELECT ta.SEQ, 
+			ta.MENU_NAME, 
+			ta.MENU_ORDER, 
+			ta.MENU_URL, 
+			ta.PARENT_SEQ,
+			COALESCE(tb.MENU_NAME, '-') as PARENT_NAME,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_USER_ID,
+			ta.EDIT_DATE
+		FROM TACA_ADMIN_MENU ta
+			LEFT OUTER JOIN
+			TACA_ADMIN_MENU tb
+		ON ta.PARENT_SEQ = tb.SEQ
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 관리자 메뉴 부모 선택용 -->
+	<select id="findAdminMenuParent" resultType="menuAdminSelectParentRO">
+		SELECT 
+			ta.SEQ, 
+			ta.MENU_NAME,
+			(SELECT COUNT(1) FROM TACA_ADMIN_MENU tb WHERE tb.PARENT_SEQ = ta.SEQ AND tb.DELETE_FLAG = 'N') AS CNT
+		FROM TACA_ADMIN_MENU ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.PARENT_SEQ IS NULL
+		ORDER BY ta.MENU_ORDER
+	</select>
+
+	<!-- 메뉴 로그 용 -->	
+	<select id="checkMenuOrder" parameterType="HashMap" resultType="menuAdminVO">
+		SELECT *
+		FROM TACA_ADMIN_MENU
+		WHERE DELETE_FLAG = 'N'
+		<choose>
+			<when test="parentSeq == 0">
+				AND PARENT_SEQ IS NULL
+			</when>
+			<otherwise>
+				AND PARENT_SEQ = #{parentSeq}
+			</otherwise>
+		</choose>
+		AND MENU_ORDER >= #{menuOrder}
+	</select>
+	
+	<!-- 메뉴 출력 순서 증가 업데이트 -->
+	<update id="updateMenuOrderInc" parameterType="HashMap">
+		UPDATE TACA_ADMIN_MENU
+		SET MENU_ORDER= MENU_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		<choose>
+			<when test="parentSeq == 0">
+				AND PARENT_SEQ IS NULL
+			</when>
+			<otherwise>
+				AND PARENT_SEQ = #{parentSeq}
+			</otherwise>
+		</choose>
+		
+		AND MENU_ORDER >= #{menuOrder}
+	</update>
+	
+	<!-- 메뉴 출력 순서 감소 업데이트 -->
+	<update id="updateMenuOrderDec" parameterType="HashMap">
+		UPDATE TACA_ADMIN_MENU
+		SET MENU_ORDER= MENU_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		<choose>
+			<when test="parentSeq == 0">
+				AND PARENT_SEQ IS NULL
+			</when>
+			<otherwise>
+				AND PARENT_SEQ = #{parentSeq}
+			</otherwise>
+		</choose>
+		
+		AND MENU_ORDER >= #{menuOrder}
+	</update>
+	
+	<!-- 메뉴 등록 -->
+	<insert id="addMenuAdmin" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TACA_ADMIN_MENU
+	(
+		MENU_NAME, 
+		MENU_ORDER,
+		MENU_URL, 
+		<if test="parentSeq > 0"> 
+			PARENT_SEQ, 
+		</if>
+		REG_USER_ID,
+		EDIT_USER_ID, 
+		REG_DATE, 
+		EDIT_DATE, 
+		DELETE_FLAG 
+	)
+	VALUES
+	(
+		#{menuName}, 
+		#{menuOrder},
+		<if test="parentSeq > 0"> 
+			#{menuUrl}, 
+			#{parentSeq}, 
+		</if>
+		<if test="parentSeq == 0"> 
+			'', 
+		</if>
+		
+		 #{regUserId},
+		 #{regUserId},
+		 now(),
+		 now(),
+		 'N'
+	)
+	</insert>
+	
+	<!-- 메뉴 수정 -->
+	<update id="editMenu" parameterType="HashMap">
+		UPDATE TACA_ADMIN_MENU
+		SET 
+			MENU_NAME = #{menuName},
+			MENU_ORDER = #{menuOrder},
+			<if test="parentSeq > 0">
+				MENU_URL = #{menuUrl}, 
+				PARENT_SEQ = #{parentSeq}, 
+			</if>
+			<if test="parentSeq == 0">
+				MENU_URL = '', 
+				PARENT_SEQ = null, 
+			</if>
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+
+	<!-- 메뉴 삭제 -->
+	<update id="deleteMenu" parameterType="HashMap">
+		UPDATE TACA_ADMIN_MENU
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+
+</mapper>

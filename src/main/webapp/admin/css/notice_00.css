@@ -1,0 +1,224 @@
+/*index css*/
+
+/*container 내용물*/
+
+#container .notice_area{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  min-height:636px;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  #container .notice_area{
+    width:100%;
+  	height:100%;
+  	overflow:hidden;
+  	min-height:662px;
+ }
+}
+
+@-moz-document url-prefix(){
+  #container .notice_area{
+    width:100%;
+  	height:100%;
+  	overflow:hidden;
+  	min-height:691px;
+ }
+}
+
+#container .notice_area h1{
+  margin:2% 0 10px 10%;
+  font-weight:600;
+  font-size: 20px;
+}
+
+#container .notice_area h1 img{
+  width: 15px;
+  vertical-align: 0;
+  margin-right: 10px;
+}
+
+#container .notice_area .select_box{
+  overflow:hidden;
+  width:80%;
+  margin-left:10%;
+}
+
+#container .notice_area .select_box .date{
+  width:200px;
+  padding-left:10px; 
+  padding-right:10px;
+}
+
+#container .notice_area .select_box select.kind{
+  border:1px solid #ccc;
+  font-size:15px;
+  width:210px!important;
+  height:30px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  margin-right:5px;
+  background: url("../img/select_arrow.png") no-repeat 90% center white!important;
+  float:right;
+  background-size: 7px;
+  padding-left: 5px;
+  padding-right: 15px;
+}
+
+#container .notice_area .select_box select.kind2{
+  border:1px solid #ccc;
+  font-size:15px;
+  width:100px!important;
+  height:30px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  margin-right:5px;
+  background: url("../img/select_arrow.png") no-repeat 90% center white!important;
+  float:right;
+  background-size: 7px;
+  padding-left: 5px;
+  padding-right: 15px;
+}
+
+#container .notice_area .select_box select option{
+  background-color:#fff;
+}
+
+#container .notice_area .select_box input.search_bt{
+  border: 1px solid #ccc;
+  width: 60px;
+  height: 30px;
+  color: #333;
+  background-color: #fff;
+  font-weight: 600;
+  vertical-align: 1px;
+  font-size: 15px;
+  float: right;
+  font-family: 'Nanum Gothic', sans-serif!important;
+}
+
+#container .notice_area .select_box input.search_content{
+  width: 200px;
+  margin-right: 5px;
+  float: right;
+  height: 30px;
+  background-color: #fff;
+  padding-left: 10px;
+  border: 1px solid #ccc;
+}
+
+#container .notice_area ul{
+  float:left;
+  margin-top: 5px;
+/*   margin-left: 560px; */
+}
+
+#container .notice_area ul li{
+  float:left;
+  font-weight:bold;
+  margin-right:5px;
+  padding-top: 5px;
+  color:#333;
+  cursor:pointer;
+}
+
+#container .notice_area ul .li_number{
+  border:1px solid #ccc;
+  padding:5px 10px;
+  color:#333;
+  background:#fff;
+  cursor:pointer;
+  }
+
+#container .notice_area ul .li_number:hover{
+  border:1px solid #aaa;
+}
+
+#container .notice_area ul .active{
+  color:#fa0;
+}
+
+#container .notice_area p{
+  float:right;
+  width:70px;
+  font-weight:600;
+  color:#333;
+  border:1px solid #ccc;
+  background:#fff;
+  padding:6px;
+  cursor:pointer;
+}
+
+#container .notice_area p:hover{
+  border:1px solid #aaa;
+}
+
+#container .notice_area table{
+  margin:10px 10% 1% 10%;
+  width:80%;
+  background-color:#fff;
+}
+
+#container .notice_area table tr{
+  border:1px solid #ddd;
+  border-collapse: collapse;
+}
+
+#container .notice_area table tr:hover{
+	background:#fbfbfb;
+	cursor:pointer;
+}
+
+#container .notice_area table tr th{
+  border:1px solid #ddd;
+  font-weight:600;
+  color:#333;
+  height:50px;
+  border-collapse: collapse;
+  text-align:center;
+}
+
+#container .notice_area table tr:hover th{
+	background:#fff;
+	cursor:auto;
+}
+
+#container .notice_area table tr td{
+  border:1px solid #ddd;
+  font-size:14px;
+  height:35px;
+  /* height:30px; */
+  border-collapse: collapse;
+}
+
+/* #container .notice_area table tbody tr:hover{
+	background:#fbfbfb;
+} */
+
+#container .notice_area table tr .notice_story{
+  text-align:left;
+  padding-left:20px;
+}
+
+#container .notice_area table tr .notice_story:hover{
+  color:#888;
+  cursor:pointer;
+}
+
+#container .notice_area .page_box{
+  overflow:hidden;
+  border-bottom:2px solid #eee;
+  display:block;
+  width:80%;
+  /* height:30px; */
+  margin: 0 10%;
+  padding:5px 0;
+}
+
+#container .notice_area .page_box p img{
+  width: 29%;
+  vertical-align: -5px;
+}

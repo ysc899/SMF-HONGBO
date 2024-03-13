@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.FaqIntegratedMapper">
+
+
+	
+	<!-- 통합 FAQ 내용 조회-->
+	<select id="findFaqSlaveBySeq" parameterType="HashMap" resultType="boardFaQSlaveVO">
+		SELECT *
+		FROM TEDB_BOARD_FAQ_SLAVE
+		WHERE SEQ = #{seq}
+		AND BOARD_FAQ_MASTER_SEQ = #{boardFaqMasterSeq}
+	</select>
+	
+	
+	<!-- FAQ 내용 리스트 -->
+	<select id="findFaqIntegratedList" parameterType="HashMap" resultType="faqIntegratedResultRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			CONCAT(LEFT(ta.QUESTION, 30), '...') as QUESTION ,
+			CONCAT(LEFT(ta.ANSWER, 10), '...') as ANSWER ,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE
+					tba.MASTER_CODE = 'FAQ'
+					and tba.DELETE_FLAG = 'N'
+					and tba.SLAVE_CODE = ta.CODE_CATEGORY_TYPE 
+			) as CODE_CATEGORY_NAME,
+			ta.CODE_CATEGORY_TYPE,
+			ta.EDIT_DATE
+		FROM TEDB_BOARD_FAQ_SLAVE ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_FAQ_MASTER_SEQ = #{masterSeq}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('qus')">
+					AND ta.QUESTION LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('ans')">
+					AND ta.ANSWER LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.QUESTION LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.ANSWER LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- FAQ 내용 리스트 카운트 -->
+	<select id="countFaqIntegratedList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEDB_BOARD_FAQ_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_FAQ_MASTER_SEQ = #{masterSeq}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('qus')">
+					AND ta.QUESTION LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('ans')">
+					AND ta.ANSWER LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.QUESTION LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.ANSWER LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 통합 FAQ 정보 상세 조회용 -->
+	<select id="findFaqIntegratedViewBySeq" parameterType="hashmap" resultType="faqIntegratedResultRO">
+		SELECT 
+			ta.SEQ,
+			ta.QUESTION,
+			ta.ANSWER,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE
+					tba.MASTER_CODE = 'FAQ'
+					and tba.DELETE_FLAG = 'N'
+					and tba.SLAVE_CODE = ta.CODE_CATEGORY_TYPE 
+			) as CODE_CATEGORY_NAME,
+			ta.CODE_CATEGORY_TYPE,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_USER_ID,
+			ta.EDIT_DATE
+		FROM TEDB_BOARD_FAQ_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_FAQ_MASTER_SEQ = #{boardFaqMasterSeq}
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 통합 FAQ 내용 등록 -->
+	<insert id="addFaqIntegrated"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEDB_BOARD_FAQ_SLAVE
+		(
+			BOARD_FAQ_MASTER_SEQ,
+			CODE_CATEGORY_TYPE,
+			QUESTION,
+			ANSWER,
+			EDIT_USER_ID,
+			REG_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{boardFaqMasterSeq},
+			#{codeCategoryType},
+			#{question},
+			#{answer},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	<!-- 통합 FAQ 내용 수정 -->
+	<update id="editFaqIntegrated" parameterType="HashMap">
+		UPDATE TEDB_BOARD_FAQ_SLAVE
+		SET CODE_CATEGORY_TYPE = #{codeCategoryType},
+			QUESTION = #{question},
+			ANSWER = #{answer},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_FAQ_MASTER_SEQ = #{boardFaqMasterSeq}
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 통합 FAQ 내용  삭제 -->
+	<update id="deleteFaqIntegrated" parameterType="HashMap">
+		UPDATE TEDB_BOARD_FAQ_SLAVE
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_FAQ_MASTER_SEQ = #{boardFaqMasterSeq}
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 사용자용  -->
+	<!-- 카테고리들 조회 -->
+	<select id="findUserFaqIntegratedCategory" parameterType="HashMap" resultType="String" >
+		SELECT 
+			ta.CODE_CATEGORY_TYPE
+		FROM TEDB_BOARD_FAQ_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_FAQ_MASTER_SEQ = #{boardFaqMasterSeq}
+		GROUP BY ta.CODE_CATEGORY_TYPE
+	</select>
+	<!-- faq 리스트 조회 -->
+	<select id="findUserFaqIntegratedList" parameterType="HashMap" resultType="faqUserListRO" >
+		SELECT  
+			ta.QUESTION,
+			ta.ANSWER,
+			ta.CODE_CATEGORY_TYPE
+		FROM TEDB_BOARD_FAQ_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_FAQ_MASTER_SEQ = #{boardFaqMasterSeq}
+		ORDER BY REG_DATE DESC
+	</select>
+	
+	<!-- 언어별 faq 리스트 -->
+	<select id="findLanguageFaqs" parameterType="HashMap" resultType="Integer" >
+		SELECT 
+			ta.SEQ
+		FROM TEDA_BOARD_FAQ_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{language}
+	</select>
+
+
+	<!-- FAQ 메인 검색 리스트 -->
+	<select id="findMainSearchFaqIntegratedList" parameterType="HashMap" resultType="faqUserListRO" >
+		SELECT  
+			ta.QUESTION,
+			ta.ANSWER
+		FROM TEDB_BOARD_FAQ_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+<!-- 		AND ta.BOARD_FAQ_MASTER_SEQ = #{masterSeq} -->
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND (
+					ta.QUESTION LIKE CONCAT('%', #{searchKeyword}, '%')
+				OR
+					ta.ANSWER LIKE CONCAT('%', #{searchKeyword}, '%')
+			)
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- FAQ 메인 검색 카운트 -->
+	<select id="countMainSearchFaqIntegratedList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEDB_BOARD_FAQ_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+<!-- 		AND ta.BOARD_FAQ_MASTER_SEQ = #{masterSeq} -->
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND (
+					ta.QUESTION LIKE CONCAT('%', #{searchKeyword}, '%')
+				OR
+					ta.ANSWER LIKE CONCAT('%', #{searchKeyword}, '%')
+			)
+		</if>
+	</select>
+</mapper>

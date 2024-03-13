@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.db2.DB2UserLoginMapper">
+	
+	<select id="callUserLogin" statementType="CALLABLE" parameterType="loginVO" >
+		{ call WEBOBJLIB.MWR001R2GU
+			(
+				#{I_COR, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_UID, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_IP, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{O_MSGCOD, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{O_ERRCOD, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{I_PWD, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_PWD_NXT, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{O_PHCD, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{O_PUNM, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{O_PUGB, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{O_PIYN, mode=OUT, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+	
+	<select id="callUserChangePw" statementType="CALLABLE" parameterType="userChangePwVO" >
+		{ call WEBOBJLIB.MWS005C4
+			(
+				#{I_COR, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_UID, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_IP, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{O_MSGCOD, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{O_ERRCOD, mode=OUT, jdbcType=VARCHAR, javaType=string},
+				#{I_LOGLID, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_SPWD, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_PWD, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_SPWD_SHA, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_PWD_SHA, mode=IN, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+	
+	<select id="callTrmsLogin" statementType="CALLABLE" parameterType="trmsLoginVO" >
+		{ call WEBOBJLIB.MWS005C5
+			(
+				#{I_COR, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_UID, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{I_HLK, mode=IN, jdbcType=VARCHAR, javaType=string},
+				#{O_RSTCOD, mode=OUT, jdbcType=VARCHAR, javaType=string}
+			)
+		}
+	</select>
+
+</mapper>

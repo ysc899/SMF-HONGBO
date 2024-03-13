@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.AdminUserMapper">
+
+
+	<!-- 로그인용 사용자 정보 조회 -->
+	<select id="selectByUserId"  parameterType="HashMap" resultType="adminUserVO">
+		SELECT
+			*
+		FROM TAAA_ADMIN_USER
+		WHERE USER_ID = #{userId}
+		AND DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 관리자 사용자 메뉴 정보 조회 -->
+	<select id="findByMainAdminUserMenus" parameterType="HashMap" resultType="mainAdminMenuRO">
+		SELECT ta.SEQ, ta.MENU_NAME, ta.MENU_URL, ta.MENU_ORDER, ta.PARENT_SEQ, tb.READ_FLAG, tb.WRITE_FLAG
+		FROM TACA_ADMIN_MENU ta,
+			TAAB_ADMIN_USER_MENU tb
+		WHERE ta.SEQ = tb.MENU_ADMIN_SEQ
+		AND tb.USER_ID = #{userId}
+		AND tb.READ_FLAG = 'Y'
+		AND tb.DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 관리자 최종 로그인 시간 업데이트 -->
+	<update id="updateLastLogin" parameterType="HashMap">
+		UPDATE TAAA_ADMIN_USER
+		SET LAST_LOGIN_DATE = now()
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<!-- 관리자 리스트 조회 -->
+	<select id="findAdminList" parameterType="HashMap" resultType="adminUserVO">
+		SELECT @ROWNUM:=@ROWNUM+1 as row, taa.USER_ID, taa.NAME, taa.CONTACT, taa.LAST_LOGIN_DATE
+		FROM (
+			SELECT ta.USER_ID, ta.NAME, ta.CONTACT, ta.LAST_LOGIN_DATE
+			FROM TAAA_ADMIN_USER ta 
+			WHERE ta.DELETE_FLAG = 'N'
+			<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+				<choose>
+					<when test="searchOption != null and searchOption.equals('id')">
+						AND ta.USER_ID like CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchOption != null and searchOption.equals('name')">
+						AND ta.NAME like CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+								ta.USER_ID like CONCAT('%', #{searchKeyword}, '%')
+							OR
+								ta.NAME like CONCAT('%', #{searchKeyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+		) taa,
+		(SELECT @ROWNUM := #{offset}) TMP
+
+		ORDER BY taa.LAST_LOGIN_DATE DESC			
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	<!-- 관리자 리스트 카운트 -->
+	<select id="countAdminList" parameterType="HashMap" resultType="Integer" >
+		SELECT count(1) as CNT
+		FROM TAAA_ADMIN_USER ta
+		WHERE DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('id')">
+					AND ta.USER_ID like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.NAME like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.USER_ID like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.NAME like CONCAT('%', #{searchKeyword}, '%')
+					)
+				
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 관리자 사용자 상세 정보 -->
+	<select id="findAdminInfo" parameterType="HashMap" resultType="adminUserVO">
+		SELECT ta.USER_ID, 
+			ta.COMMENT, 
+			ta.CONTACT, 
+			ta.EMAIL, 
+			ta.NAME, 
+			ta.EDIT_USER_ID,
+			(SELECT NAME FROM TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE,
+			ta.LAST_LOGIN_DATE
+		FROM TAAA_ADMIN_USER ta
+		WHERE DELETE_FLAG = 'N'
+		AND USER_ID = #{userId}
+	</select>
+	
+	<!-- id 중복 체크 -->
+	<select id="countUserId" parameterType="HashMap" resultType="Integer">
+		SELECT count(1)
+		FROM TAAA_ADMIN_USER ta
+		WHERE USER_ID = #{userId}
+	</select>
+	
+	<!-- 관리자 사용자 등록 -->
+	<insert id="addAdminUser" parameterType="HashMap">
+		INSERT INTO TAAA_ADMIN_USER
+		(
+			USER_ID, NAME, PASSWORD, CONTACT, EMAIL, COMMENT, DELETE_FLAG, REG_DATE, EDIT_DATE, REG_USER_ID, EDIT_USER_ID
+		)
+		VALUES(
+			#{userId}, #{name}, #{password}, #{contact}, #{email}, #{comment}, 'N', now(), now(), #{regUserId}, #{regUserId}
+		)
+	</insert>
+	
+	<!-- 관리자 사용자 메뉴 등록 -->
+	<insert id="addAdminUserMenu" parameterType="java.util.List">
+		INSERT INTO TAAB_ADMIN_USER_MENU
+			( 
+				USER_ID,
+			 	MENU_ADMIN_SEQ, 
+			 	READ_FLAG, 
+			 	WRITE_FLAG, 
+			 	REG_USER_ID,
+				REG_DATE,
+				EDIT_USER_ID,
+				EDIT_DATE,
+				DELETE_FLAG
+			)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.userId}, #{item.menuAdminSeq}, #{item.readFlag}, #{item.writeFlag}, #{item.regUserId}, now(), #{item.regUserId}, now(), 'N')
+		</foreach>
+	</insert>
+	
+	<!-- 해당 사용자의 관리자 메뉴 리스트 조회 -->
+	<select id="findAllUserMenu" parameterType="HashMap" resultType="adminUserMenuMappingVO">
+		SELECT *
+		FROM TAAB_ADMIN_USER_MENU
+		WHERE USER_ID = #{userId}
+		AND DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 관리자 사용자 삭제 -->
+	<update id="deleteAdminUser" parameterType="adminUserVO">
+		UPDATE TAAA_ADMIN_USER
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE USER_ID = #{userId}
+		AND DELETE_FLAG = 'N'
+	</update>
+	
+	<!-- 관리자 사용자 수정 -->
+	<update id="editAdminUser" parameterType="adminUserVO">
+		UPDATE TAAA_ADMIN_USER
+		SET 
+			NAME = #{name},
+			<if test="password !=null and !password.equals('')">
+				PASSWORD = #{password},
+			</if>
+			CONTACT = #{contact},
+			EMAIL = #{email},
+			COMMENT = #{comment}, 
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE USER_ID = #{userId}
+		AND DELETE_FLAG = 'N'
+	</update>
+	
+	<!-- 관리자 메뉴 삭제 -->
+	<update id="deleteAllUserMenu" parameterType="adminUserVO">
+		UPDATE TAAB_ADMIN_USER_MENU
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE USER_ID = #{userId}
+		AND DELETE_FLAG = 'N'
+	</update>
+	
+	<update id="editMyInfo" parameterType="adminUserVO">
+		UPDATE TAAA_ADMIN_USER
+		SET 
+			<if test="password !=null and !password.equals('')">
+				PASSWORD = #{password},
+			</if>
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE USER_ID = #{userId}
+		AND DELETE_FLAG = 'N'
+	
+	</update>
+	
+	
+</mapper>

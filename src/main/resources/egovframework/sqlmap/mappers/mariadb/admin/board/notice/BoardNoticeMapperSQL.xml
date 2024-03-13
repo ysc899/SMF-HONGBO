@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.BoardNoticeMapper">
+
+
+	<!-- 공문 단일 조회 -->
+	<select id="findNoticeBySeq" parameterType="HashMap" resultType="boardNoticeVO">
+		SELECT *
+		FROM TEAA_BOARD_NOTICE
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 공문 파일 로그용 조회 -->
+	<select id="findNoticeFileByNoticeSeq" parameterType="HashMap" resultType="boardNoticeFileVO">
+		SELECT *
+		FROM TEAB_BOARD_NOTICE_FILE
+		WHERE BOARD_NOTICE_SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 공문 관리 리스트 -->
+	<select id="findNoticeList" parameterType="HashMap" resultType="boardNoticeListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE,
+			ta.NOTICE_NUMBER, 
+			ta.HIT_CNT, 
+			ta.NOTICE_FLAG, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+			) as CODE_CENTER_NAME,
+			ta.CODE_CENTER_TYPE,
+			
+			ta.EDIT_DATE, 
+			ta.REG_DATE
+		FROM TEAA_BOARD_NOTICE ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 공문 관리 리스트 카운트 -->
+	<select id="countNoticeList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEAA_BOARD_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 공문 정보 상세 조회용 -->
+	<select id="findNoticeViewBySeq" parameterType="hashmap" resultType="boardNoticeViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.CODE_CENTER_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+			) as CODE_CENTER_NAME,
+			ta.NOTICE_NUMBER, 
+			ta.TITLE,
+			ta.CONTENT,
+			ta.NOTICE_FLAG,
+			ta.LOGIN_YN,
+			ta.HIT_CNT,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE
+		FROM TEAA_BOARD_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 공문 첨부파일 상세 조회용 -->
+	<select id="findNoticeFileViewByNoticeSeq" parameterType="hashmap" resultType="boardNoticeFileViewRO">
+		SELECT 
+			SEQ,
+			DOWN_CNT,
+			FILE_NAME,
+			FILE_SIZE
+		FROM TEAB_BOARD_NOTICE_FILE
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_NOTICE_SEQ = #{noticeSeq}
+	</select>
+	
+	<!-- 공문 등록 -->
+	<insert id="addNotice"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEAA_BOARD_NOTICE
+		(
+		 	CODE_LANG_TYPE,
+			CODE_CENTER_TYPE,
+			NOTICE_NUMBER,
+		 	TITLE,
+		 	CONTENT,
+		 	NOTICE_FLAG,
+		 	LOGIN_YN,
+		 	HIT_CNT,
+		 	EDIT_USER_ID,
+		 	REG_USER_ID,
+		 	EDIT_DATE,
+		 	REG_DATE,
+		 	DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{codeCenterType},
+			#{noticeNumber},
+			#{title},
+			#{content},
+			#{noticeFlag},
+			#{loginYn},
+			0,
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	<!-- 공문 등록 -->
+	<insert id="addMigNotice"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEAA_BOARD_NOTICE
+		(
+		 	CODE_LANG_TYPE,
+			CODE_CENTER_TYPE,
+			NOTICE_NUMBER,
+		 	TITLE,
+		 	CONTENT,
+		 	NOTICE_FLAG,
+		 	HIT_CNT,
+		 	EDIT_USER_ID,
+		 	REG_USER_ID,
+		 	EDIT_DATE,
+		 	REG_DATE,
+		 	DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{codeCenterType},
+			#{noticeNumber},
+			#{title},
+			#{content},
+			#{noticeFlag},
+			0,
+			#{regUserId},
+			#{regUserId},
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			'N'
+		)
+	</insert>
+	
+	<!-- 공문 파일 등록 -->
+	<insert id="addMigNoticeFile"  parameterType="HashMap">
+		INSERT INTO TEAB_BOARD_NOTICE_FILE
+		(
+			BOARD_NOTICE_SEQ,
+			FILE_NAME,
+			FILE_PATH,
+			FILE_SIZE,
+			DOWN_CNT,
+			EDIT_USER_ID,
+			REG_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+			(
+				#{boardNoticeSeq},
+				#{fileName},
+				#{filePath},
+				#{fileSize},
+				0,
+				#{regUserId},
+				#{regUserId},
+				STR_TO_DATE(#{regDate}, '%Y%m%d'),
+				STR_TO_DATE(#{regDate}, '%Y%m%d'),
+				'N'
+			)
+	</insert>
+	
+	<!-- 공문 파일 등록 -->
+	<insert id="addNoticeFile"  parameterType="java.util.List">
+		INSERT INTO TEAB_BOARD_NOTICE_FILE
+		(
+			BOARD_NOTICE_SEQ,
+			FILE_NAME,
+			FILE_PATH,
+			FILE_SIZE,
+			DOWN_CNT,
+			EDIT_USER_ID,
+			REG_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.boardNoticeSeq},
+				#{item.fileName},
+				#{item.filePath},
+				#{item.fileSize},
+				0,
+				#{item.regUserId},
+				#{item.regUserId},
+				now(),
+				now(),
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 파일 다운로드 경로 -->
+	<select id="findNoticeFile" parameterType="HashMap" resultType="boardNoticeFileVO">
+		SELECT tb.*
+		FROM TEAA_BOARD_NOTICE ta,
+			TEAB_BOARD_NOTICE_FILE tb
+		WHERE ta.SEQ = tb.BOARD_NOTICE_SEQ
+		AND ta.SEQ = #{boardNoticeSeq}
+		AND tb.SEQ = #{boardNoticeFileSeq}
+		AND ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 공문 수정 -->
+	<update id="editNotice" parameterType="HashMap">
+		UPDATE TEAA_BOARD_NOTICE
+		SET 
+			CODE_CENTER_TYPE= #{codeCenter},
+			CODE_LANG_TYPE= #{codeLang},
+			TITLE= #{title},
+			LOGIN_YN = #{loginYn},
+			NOTICE_NUMBER= #{noticeNumber},
+			CONTENT= #{content},
+			NOTICE_FLAG= #{noticeFlag},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	
+	</update>
+	
+	<!-- 공문  삭제 -->
+	<update id="deleteNotice" parameterType="HashMap">
+		UPDATE TEAA_BOARD_NOTICE
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 공문 파일들 삭제 -->
+	<update id="deleteNoticeFiles" parameterType="HashMap">
+		UPDATE TEAB_BOARD_NOTICE_FILE
+		SET 
+			DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE BOARD_NOTICE_SEQ = #{noticeSeq}
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+	
+	<!-- 사용자용 리스트 -->
+	<!-- 공문 사용자 리스트 -->
+	<select id="findUserNoticeList" parameterType="HashMap" resultType="noticeListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.NOTICE_NUMBER,
+			ta.HIT_CNT, 
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_CENTER_NAME,
+			(	
+				SELECT COUNT(1)
+				FROM TEAB_BOARD_NOTICE_FILE
+				WHERE DELETE_FLAG = 'N'
+				AND BOARD_NOTICE_SEQ = ta.SEQ
+			) as FILE_CNT,
+			ta.EDIT_DATE,
+			ta.REG_DATE,
+			ta.LOGIN_YN
+		FROM TEAA_BOARD_NOTICE ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="loginYn">
+			AND ta.LOGIN_YN IN('N','Y')
+		</if>
+		<if test="not loginYn">
+			AND ta.LOGIN_YN  = 'N'
+		</if>
+		<if test="codeCenterType !=null and !codeCenterType.equals('')">
+			AND ta.CODE_CENTER_TYPE = #{codeCenterType}
+		</if>
+		<if test="searchKeyword !=null and !searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 공문 관리 리스트 카운트 -->
+	<select id="countUserNoticeList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEAA_BOARD_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="loginYn">
+			AND ta.LOGIN_YN IN('N','Y')
+		</if>
+		<if test="not loginYn">
+			AND ta.LOGIN_YN  = 'N'
+		</if>
+		<if test="codeCenterType !=null and !codeCenterType.equals('')">
+			AND ta.CODE_CENTER_TYPE = #{codeCenterType}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 공문 공지 리스트 -->
+	<select id="getUserNoticeList" parameterType="HashMap" resultType="noticeListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.NOTICE_NUMBER,
+			ta.HIT_CNT, 
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_CENTER_NAME,
+			(	
+				SELECT COUNT(1)
+				FROM TEAB_BOARD_NOTICE_FILE
+				WHERE DELETE_FLAG = 'N'
+				AND BOARD_NOTICE_SEQ = ta.SEQ
+			) as FILE_CNT,
+			ta.EDIT_DATE, 
+			ta.REG_DATE
+		FROM TEAA_BOARD_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.NOTICE_FLAG = 'Y'
+		ORDER BY REG_DATE DESC
+	
+	</select>
+	
+	
+	<!-- 공문 정보 상세 조회용 -->
+	<select id="findUserNoticeViewBySeq" parameterType="hashmap" resultType="noticeViewRO">
+		SELECT 
+			ta.SEQ,
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_CENTER_NAME,
+		
+			ta.TITLE,
+			ta.NOTICE_NUMBER,
+			ta.CONTENT,
+			
+			ta.HIT_CNT,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE
+		FROM TEAA_BOARD_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.SEQ = #{seq}
+	</select>
+	
+		<!-- 조회수 업 -->
+	<update id="updateNoticeHit" parameterType="HashMap">
+		UPDATE TEAA_BOARD_NOTICE ta
+		SET ta.HIT_CNT = ta.HIT_CNT+1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</update>
+	
+	<!-- 이전 다음 확인용 -->
+	<select id="findNoticeNextPreBySeq" parameterType="HashMap" resultType="noticeViewNextPreRO">
+		(
+			SELECT SEQ, TITLE, 'pre' as TYPE
+			FROM TEAA_BOARD_NOTICE
+			WHERE #{seq} > SEQ
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND DELETE_FLAG = 'N'
+			ORDER BY SEQ DESC
+			LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT SEQ, TITLE, 'next' as TYPE
+			FROM TEAA_BOARD_NOTICE
+			WHERE SEQ > #{seq}
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND DELETE_FLAG = 'N'
+			ORDER BY SEQ ASC
+			LIMIT 1
+		)
+	</select>
+	
+	<!-- 파일 다운로드 업 -->
+	<update id="updateNoticeFileHit" parameterType="HashMap">
+		UPDATE TEAB_BOARD_NOTICE_FILE ta
+		SET ta.DOWN_CNT = ta.DOWN_CNT +1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{boardNoticeFileSeq}
+		AND ta.BOARD_NOTICE_SEQ = #{boardNoticeSeq}
+	</update>
+
+</mapper>

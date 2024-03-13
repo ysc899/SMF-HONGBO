@@ -1,0 +1,265 @@
+/*index css*/
+
+/*container 내용물*/
+
+#container .notice_area{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  min-height:636px;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  #container .notice_area{
+    width:100%;
+  	height:100%;
+  	overflow:hidden;
+  	min-height:662px;
+ }
+}
+
+@-moz-document url-prefix(){
+  #container .notice_area{
+    width:100%;
+  	height:100%;
+  	overflow:hidden;
+  	min-height:691px;
+ }
+}
+
+#container .notice_area h1{
+  margin-top:2%;
+  margin-left:10%;
+  font-size:16px;
+  font-weight:600;
+}
+
+#container .notice_area h1 img{
+  width: 15px;
+  vertical-align: -2px;
+  margin-right: 10px;
+}
+
+#container .notice_area p:hover{
+
+}
+
+#container .notice_area table{
+  margin:1% 10% 1% 10%;
+  width:80%;
+  background-color:#fff;
+}
+
+#container .notice_area table tr{
+  border:1px solid #ddd;
+  border-collapse: collapse;
+}
+
+#container .notice_area table tr th{
+  font-size:14px;
+  font-weight:600;
+  width:15px!important;
+  height:40px;
+  border-collapse: collapse;
+  text-align:left;
+  padding:5px 10px;
+  border:1px solid #eee;
+}
+
+#container .notice_area table tr td{
+  border-left:none;
+  font-size:14px;
+  width:15px;
+  height:40px;
+  border-collapse: collapse;
+  text-align:left;
+  padding:10px;
+  border:1px solid #eee;
+}
+
+#container .notice_area table tr ._sourceRow:hover{
+	background:#fff9eb;
+	cursor:pointer;
+}
+
+#container .notice_area table tr td input{
+  border:none;
+  border-bottom:1px solid #ccc;
+}
+
+#container .notice_area table tr td .text_title{
+  width:500px;
+  display:inline-block;
+  margin-right:10px;
+}
+
+#container .notice_area table tr td label{
+  vertical-align:-3px;
+}
+
+/* #container .notice_area table tr td span{ */
+/*   text-align:center; */
+/*   float:right; */
+/*   margin-left:10px; */
+/*   display:block; */
+/* } */
+
+#container .notice_area table tr td span.notice_write_ok{
+  text-align:center;
+  float:right;
+  margin-left:10px;
+  display:block;
+  width: 100px;
+  font-weight: 600;
+  color: #333;
+  border:1px solid #ccc;
+  padding:14px;
+  cursor:pointer;
+}
+
+#container .notice_area table tr td span.notice_write_ok:hover{
+  border:1px solid #888;
+}
+
+#container .notice_area table tr td span.notice_write_cancel{
+  text-align:center;
+  float:right;
+  margin-left:10px;
+  display:block;
+  width: 80px;
+  font-weight: 600;
+  color: #333;
+  border:1px solid #ccc;
+  padding:9px;
+  cursor:pointer;
+}
+
+#container .notice_area table tr td span.notice_write_cancel img{
+  width: 40%;
+  vertical-align: -7px;
+  margin-right:1px;
+}
+
+#container .notice_area table tr td span.notice_write_cancel:hover{
+  border:1px solid #888;
+}
+
+#container .notice_area table tr .demo_write_program{
+}
+
+/*summernote css 나중에 확인후 지울것*/
+
+.note-editor.note-frame{
+  max-width:100%;
+  margin:2% 0;
+}
+
+.note-editor.note-frame .note-editing-area .note-editable{
+  color:#000!important;
+}
+
+#container .notice_area table tr .write_note{
+/*   padding:0 10%; */
+}
+#container .notice_area table tr .write_note b, strong{
+    font-weight: 700;
+}
+/* #container .notice_area table tr .write_note .note-editing-area span{ */
+/*     float: none !important; */
+/*     text-align:unset; */
+/*     margin: 0; */
+/*     display: unset; */
+/* } */
+
+header nav ul{
+  margin-top:17px!important;
+}
+
+header nav ul li{
+  width:85%!important;
+}
+
+header nav ul li .off{
+  margin-top:15px!important;
+}
+
+header nav ul li .off li{
+  width:100%!important;
+}
+
+header nav ul li .off li{
+  width:100%!important;
+}
+
+.note-popover .popover-content .note-color .dropdown-toggle,
+.panel-heading.note-toolbar .note-color .dropdown-toggle{
+  width:30px;
+}
+
+/*popup button*/
+
+/* #modal{
+  display:none;
+} */
+
+#modal .black_bg{
+  width:100%;
+  height:100%;
+  background-color:#000;
+  opacity:0.2;
+  position:absolute;
+  z-index: 1;
+  top:0;
+}
+
+#modal_popup{
+  width:300px;
+  height:200px;
+  border:1px solid #888;
+  background:#fff;
+  position:absolute;
+  z-index:999;
+  top:27%;
+  left:42%;
+  text-align:center;
+}
+
+#modal_popup p{
+  font-size:15px;
+  margin-top:20%;
+  font-weight:600;
+}
+
+#modal_popup span{
+  margin-top:10%;
+  display:inline-block;
+  margin-left:5%;
+  padding:3%;
+  cursor:pointer;
+}
+
+#modal_popup span:hover{
+  border:1px solid #ccc;
+}
+
+#modal_popup .cancel_button{
+  border:1px solid #888;
+  font-size:14px;
+  font-weight:600;
+  color:#000;
+}
+
+#modal_popup .cancel_button:hover{
+  color:#fa0;
+}
+
+#modal_popup .ok_button{
+  border:1px solid #888;
+  font-size:14px;
+  font-weight:600;
+  color:#000;
+}
+
+#modal_popup .ok_button:hover{
+  color:#fa0;
+}

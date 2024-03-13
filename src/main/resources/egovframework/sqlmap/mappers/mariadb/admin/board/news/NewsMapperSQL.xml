@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.NewsMapper">
+
+
+	
+	<!-- 통합 게시판 내용 로그용 조회-->
+	<select id="findBoardSlaveBySeq" parameterType="HashMap" resultType="boardDefaultSlaveVO">
+		SELECT *
+		FROM TECB_BOARD_DEFAULT_SLAVE
+		WHERE SEQ = #{seq}
+		AND BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+	</select>
+	
+	<!-- 통합 게시판 내용 파일 로그용 조회-->
+	<select id="findBoardSlaveFilesBySeq" parameterType="HashMap" resultType="boardDefaultFileVO">
+		SELECT *
+		FROM TECC_BOARD_DEFAULT_FILE
+		WHERE BOARD_DEFAULT_SLAVE_SEQ = #{seq}
+	</select>
+	
+	<!-- 통합 게시판 옵션 조회 -->
+	<select id="findMasterOptBySeq" parameterType="HashMap" resultType="boardOptInfoRO">
+		SELECT 
+			OPT_THUM_FLAG,
+			OPT_FILE_FLAG,
+			OPT_NOTI_FLAG
+		FROM TECA_BOARD_DEFAULT_MASTER
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{masterSeq}
+	</select> 
+	
+	
+	<!-- 게시판 내용 내용 리스트 -->
+	<select id="findBoardIntegratedList" parameterType="HashMap" resultType="boardIntegratedListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE,
+			ta.HIT_CNT,
+			ta.NOTICE_FLAG,
+			ta.EDIT_DATE,
+			ta.LANG_TYPE,
+			ta.ONECLICK_GCD,
+			ta.ONECLICK_GNM,
+			ta.SYSTEM_TYPE, 
+			ta.POPUP_USE_YN, 
+			ta.POPUP_START_DATE, 
+			ta.POPUP_END_DATE, 
+			ta.POPUP_TOP_POSITION, 
+			ta.POPUP_LEFT_POSITION			
+		FROM TECB_BOARD_DEFAULT_SLAVE ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{masterSeq}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- FAQ 내용 리스트 카운트 -->
+	<select id="countBoardIntegratedList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TECB_BOARD_DEFAULT_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{masterSeq}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 통합 게시판 정보 상세 조회용 -->
+	<select id="findBoardIntegratedViewBySeq" parameterType="hashmap" resultType="boardIntegratedViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.TITLE,
+			ta.CONTENT,
+			ta.HIT_CNT,
+			ta.NOTICE_FLAG,
+			ta.LANG_TYPE,
+			ta.SYSTEM_TYPE,
+			ta.POPUP_USE_YN,
+			ta.POPUP_START_DATE,
+			ta.POPUP_END_DATE,
+			ta.POPUP_TOP_POSITION,
+			ta.POPUP_LEFT_POSITION,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_USER_ID,
+			ta.EDIT_DATE,
+			ta.ONECLICK_GCD,
+			ta.ONECLICK_GNM
+		FROM TECB_BOARD_DEFAULT_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 게시판 파일들 -->
+	<select id="findBoardIntegratedFilesViewBySeq" parameterType="hashmap" resultType="boardIntegratedFileViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.FILE_PATH,
+			ta.FILE_NAME,
+			ta.FILE_SIZE,
+			ta.THUM_FLAG,
+			ta.DOWN_CNT
+		FROM TECC_BOARD_DEFAULT_FILE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_SLAVE_SEQ = #{seq}
+	</select>
+	
+	<!-- 첨부파일 다운로드 정보 -->
+	<select id="findBoarddIntegratedFileInfo" parameterType="hashmap" resultType="boardDefaultFileVO">
+		SELECT FILE_NAME, FILE_PATH
+		FROM TECC_BOARD_DEFAULT_FILE
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_DEFAULT_SLAVE_SEQ = #{boardDefaultSlaveSeq} 
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 통합 게시물 내용 등록 -->
+	<insert id="addBoardIntegrated"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TECB_BOARD_DEFAULT_SLAVE
+		(           
+			BOARD_DEFAULT_MASTER_SEQ,
+			TITLE,
+			CONTENT,
+			HIT_CNT,
+			NOTICE_FLAG,
+			LANG_TYPE,
+			SYSTEM_TYPE, 
+			POPUP_USE_YN, 
+			POPUP_START_DATE, 
+			POPUP_END_DATE, 
+			POPUP_TOP_POSITION, 
+			POPUP_LEFT_POSITION,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG,
+			ONECLICK_GCD,
+			ONECLICK_GNM
+		)
+		VALUES(
+			#{boardDefaultMasterSeq},
+			#{title},
+			#{content},
+			0,
+			#{noticeFlag},
+			#{langType},
+			#{systemType},
+			#{popupUseYn},
+			#{popupStartDate},
+			#{popupEndDate},
+			#{popupTopPosition},
+			#{popupLeftPosition},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N',
+			#{oneClickGcd},
+			#{oneClickGnm}
+		)
+	</insert>
+	<!-- 통합 게시물 내용 등록 -->
+	<insert id="addMigBoardIntegrated"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TECB_BOARD_DEFAULT_SLAVE
+		(
+			BOARD_DEFAULT_MASTER_SEQ,
+			TITLE,
+			CONTENT,
+			HIT_CNT,
+			NOTICE_FLAG,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{boardDefaultMasterSeq},
+			#{title},
+			#{content},
+			0,
+			#{noticeFlag},
+			#{regUserId},
+			#{regUserId},
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			'N'
+		)
+	</insert>
+	
+	<!-- 통합 게시물 내용 파일 등록 -->
+	<insert id="addBoardFileIntegrated"  parameterType="java.util.List">
+		INSERT INTO TECC_BOARD_DEFAULT_FILE
+		(
+			BOARD_DEFAULT_SLAVE_SEQ,
+			FILE_PATH,
+			FILE_NAME,
+			FILE_SIZE,
+			THUM_FLAG,
+			DOWN_CNT,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+		(
+			#{item.boardDefaultSlaveSeq},
+			#{item.filePath},
+			#{item.fileName},
+			#{item.fileSize},
+			#{item.thumFlag},
+			0,
+			#{item.regUserId},
+			#{item.regUserId},
+			now(),
+			now(),
+			'N'
+		)
+		</foreach>
+	</insert>
+	
+	<!-- 통합 게시물  마이그레이션  파일 등록 -->
+	<insert id="addMigBoardFileIntegrated"  parameterType="hashmap">
+		INSERT INTO TECC_BOARD_DEFAULT_FILE
+		(
+			BOARD_DEFAULT_SLAVE_SEQ,
+			FILE_PATH,
+			FILE_NAME,
+			FILE_SIZE,
+			THUM_FLAG,
+			DOWN_CNT,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		(
+			#{boardDefaultSlaveSeq},
+			#{filePath},
+			#{fileName},
+			#{fileSize},
+			#{thumFlag},
+			0,
+			#{regUserId},
+			#{regUserId},
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			'N'
+		)
+	</insert>
+	
+	<!-- 통합 게시판 내용 수정 -->
+	<update id="editBoardIntegrated" parameterType="HashMap">
+		UPDATE TECB_BOARD_DEFAULT_SLAVE
+		SET TITLE = #{title},
+			CONTENT = #{content},
+			NOTICE_FLAG = #{noticeFlag},
+			EDIT_DATE = now(),
+			LANG_TYPE= #{langType},
+			SYSTEM_TYPE = #{systemType}, 
+			POPUP_USE_YN = #{popupUseYn}, 
+			POPUP_START_DATE = #{popupStartDate}, 
+			POPUP_END_DATE = #{popupEndDate}, 
+			POPUP_TOP_POSITION = #{popupTopPosition}, 
+			POPUP_LEFT_POSITION = #{popupLeftPosition},
+			EDIT_USER_ID = #{editUserId},
+			ONECLICK_GCD = #{oneClickGcd},
+			ONECLICK_GNM = #{oneClickGnm}
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 통합 게시판 내용 섬네일 파일 삭제 -->
+	<update id="deleteBoardIntegratedThumFile" parameterType="HashMap">
+		UPDATE TECC_BOARD_DEFAULT_FILE
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_DEFAULT_SLAVE_SEQ = #{seq}
+		AND THUM_FLAG = 'Y'
+	</update>
+	
+	<!-- 통합 게시판 내용 첨부파일 파일 삭제 -->
+	<update id="deleteBoardIntegratedFiles" parameterType="HashMap">
+		UPDATE TECC_BOARD_DEFAULT_FILE
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_DEFAULT_SLAVE_SEQ = #{slaveSeq}
+		AND THUM_FLAG = 'N'
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+	
+	<!-- 통합 게시판 내용  삭제 -->
+	<update id="deleteBoardIntegrated" parameterType="HashMap">
+		UPDATE TECB_BOARD_DEFAULT_SLAVE
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 사용자용 -->
+	<!--사용자 게시판 내용 내용 리스트zzz -->
+	<select id="findUserBoardIntegratedList" parameterType="HashMap" resultType="boardListRO" >
+		SELECT
+		*
+		FROM(
+		
+			SELECT @ROWNUM:=@ROWNUM+1 as row, 
+				ta.SEQ,
+				ta.TITLE,
+				ta.CONTENT,
+				(	
+					SELECT COUNT(1)
+					FROM TECC_BOARD_DEFAULT_FILE
+					WHERE DELETE_FLAG = 'N'
+					AND BOARD_DEFAULT_SLAVE_SEQ = ta.SEQ
+					AND THUM_FLAG = 'N'
+				) as FILE_CNT,		
+				ta.HIT_CNT,
+				ta.EDIT_DATE,
+				ta.REG_DATE,
+				ta.ONECLICK_GCD,
+				ta.ONECLICK_GNM
+			FROM TECB_BOARD_DEFAULT_SLAVE ta,
+			(SELECT @ROWNUM := 0) TMP
+			WHERE ta.DELETE_FLAG = 'N'
+			AND ta.BOARD_DEFAULT_MASTER_SEQ = #{masterSeq}
+			AND ta.LANG_TYPE = #{langType}
+			<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+				<choose>
+					<when test="searchOption != null and searchOption.equals('title')">
+						AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchOption != null and searchOption.equals('content')">
+						AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<otherwise>
+						AND (
+								ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR
+								ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+					</otherwise>
+				</choose>
+			</if>
+			ORDER BY ta.REG_DATE
+	)SUB	
+	ORDER BY SUB.REG_DATE DESC, SUB.row DESC
+	LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	
+	<!-- 통합게시판 사용자용 내용 리스트 카운트 -->
+	<select id="countUserBoardIntegratedList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TECB_BOARD_DEFAULT_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{masterSeq}
+		AND ta.LANG_TYPE = #{langType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="findBoardNoticeList" parameterType="HashMap" resultType="boardListRO" >
+		SELECT  
+			ta.SEQ,
+			CASE
+				WHEN CHAR_LENGTH(ta.TITLE) > 30 THEN CONCAT(LEFT(ta.TITLE, 30), '...') 
+				ELSE ta.TITLE
+			END as TITLE ,
+			(	
+				SELECT COUNT(1)
+				FROM TECC_BOARD_DEFAULT_FILE
+				WHERE DELETE_FLAG = 'N'
+				AND BOARD_DEFAULT_SLAVE_SEQ = ta.SEQ
+				AND THUM_FLAG = 'N'
+			) as FILE_CNT,
+			ta.HIT_CNT,
+			ta.EDIT_DATE,
+			te.ONECLICK_GCD,
+			te.ONECLICK_GNM
+		FROM TECB_BOARD_DEFAULT_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{masterSeq}
+		AND ta.NOTICE_FLAG = 'Y'
+		ORDER BY REG_DATE DESC
+	
+	</select>
+	
+	
+	
+		<!-- 통합게시판 사용자 내용 조회 -->
+	<select id="findUserBoardIntegratedViewBySeq" parameterType="hashmap" resultType="boardViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.TITLE,
+			ta.CONTENT,
+			ta.HIT_CNT,
+			ta.EDIT_DATE
+		FROM TECB_BOARD_DEFAULT_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	
+			<!-- 조회수 업 -->
+	<update id="updateBoardHit" parameterType="HashMap">
+		UPDATE TECB_BOARD_DEFAULT_SLAVE ta
+		SET ta.HIT_CNT = ta.HIT_CNT+1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+		AND ta.SEQ = #{seq}
+	</update>
+	
+	<!-- 이전 다음 확인용 -->
+	<select id="findBoardNextPreBySeq" parameterType="HashMap" resultType="boardViewNextPreRO">
+		(
+			SELECT SEQ, TITLE, 'pre' as TYPE
+			FROM TECB_BOARD_DEFAULT_SLAVE
+			WHERE #{seq} > SEQ
+			AND BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+			AND DELETE_FLAG = 'N'
+			AND LANG_TYPE = #{langType}			
+			ORDER BY SEQ DESC
+			LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT SEQ, TITLE, 'next' as TYPE
+			FROM TECB_BOARD_DEFAULT_SLAVE
+			WHERE SEQ > #{seq}
+			AND BOARD_DEFAULT_MASTER_SEQ = #{boardDefaultMasterSeq}
+			AND DELETE_FLAG = 'N'
+			AND LANG_TYPE = #{langType}
+			ORDER BY SEQ ASC
+			LIMIT 1
+		)
+	</select>
+	
+	<!-- 파일 다운로드 업 -->
+	<update id="updateBoardFileHit" parameterType="HashMap">
+		UPDATE TECC_BOARD_DEFAULT_FILE ta
+		SET ta.DOWN_CNT = ta.DOWN_CNT +1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+		AND ta.BOARD_DEFAULT_SLAVE_SEQ = #{boardDefaultSlaveSeq}
+	</update>
+	
+	
+	<!-- 언어별 게시판 리스트 -->
+	<select id="findLanguageBoards" parameterType="HashMap" resultType="Integer" >
+		SELECT 
+			ta.SEQ
+		FROM TECA_BOARD_DEFAULT_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{language}
+	</select>
+	
+
+</mapper>

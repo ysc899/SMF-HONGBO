@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.AccessLogMapper">
+
+	<insert id="insertAccessLog" parameterType="HashMap">
+		INSERT INTO TZAA_LOG_ACCESS
+			(
+				MENU_SEQ, 
+				IP, 
+				<if test="userId !=null and ! userId.equals('')">
+				USER_ID, 
+				</if>
+				REG_DATE
+			)
+		VALUES(
+			#{menuSeq},
+			#{ip},
+			<if test="userId !=null and ! userId.equals('')">
+			#{userId},
+			</if>
+			 now())
+	</insert>
+	
+	<insert id="insertTotalAccessLog">
+		INSERT INTO TZAB_LOG_ACCESS_TOTAL
+			(
+				LOG_YMD, 
+				USER_ID,
+				MENU_SEQ,
+				ACCESS_COUNT
+			)
+			SELECT 
+				DATE_FORMAT(ta.DY, '%Y%m%d' ) as LOG_YMD, 
+				ta.USER_ID,
+				ta.MENU_SEQ,
+				COUNT(1) as ACCESS_COUNT
+			FROM (
+				SELECT tb.MENU_SEQ,
+					DATE_FORMAT(tb.REG_DATE, '%Y-%m-%d' ) as DY,
+					tb.USER_ID
+				FROM TZAA_LOG_ACCESS tb
+				WHERE DATE_FORMAT(tb.REG_DATE, '%Y-%m-%d' ) = DATE_FORMAT(DATE_ADD(now(), INTERVAL -1 DAY), '%Y-%m-%d' )
+			) AS ta
+			GROUP BY ta.MENU_SEQ, ta.DY, ta.USER_ID 
+	</insert>
+	
+
+
+	<!-- 접속 로그 리스트 -->
+	<select id="findAccessLogList" parameterType="HashMap" resultType="logAccessListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.IP, 
+			tb.MENU_NAME, 
+			ta.USER_ID,
+			ta.REG_DATE 
+		FROM TZAA_LOG_ACCESS ta,
+			TACB_MENU tb,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.MENU_SEQ = tb.SEQ
+		
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND ta.REG_DATE >= #{startDate}
+		</if>
+		<if test="endDate !=null and ! endDate.equals('')">
+		AND #{endDate} >= ta.REG_DATE
+		</if>
+		
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('menu')">
+					AND tb.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('userId')">
+					AND ta.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('ip')">
+					AND ta.IP LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							tb.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.IP LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	<!-- 원클릭 건강정보 관리 리스트 카운트 -->
+	<select id="countAccessLogList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TZAA_LOG_ACCESS ta,
+			TACB_MENU tb
+		WHERE ta.MENU_SEQ = tb.SEQ
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND ta.REG_DATE >= #{startDate}
+		</if>
+		<if test="endDate !=null and ! endDate.equals('')">
+		AND #{endDate} >= ta.REG_DATE
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('menu')">
+					AND tb.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('userId')">
+					AND ta.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('ip')">
+					AND ta.IP LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							tb.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.IP LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 접속 로그 다운로드 리스트 -->
+	<select id="findDownloadAccessLogList" parameterType="HashMap" resultType="logAccessDownloadListRO" >
+		SELECT ta.SEQ, ta.IP, ta.MENU_SEQ, tb.MENU_NAME, ta.REG_DATE, ta.USER_ID
+		FROM TZAA_LOG_ACCESS ta,
+			TACB_MENU tb
+		WHERE ta.MENU_SEQ = tb.SEQ
+		
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND ta.REG_DATE >= #{startDate}
+		</if>
+		<if test="endDate !=null and ! endDate.equals('')">
+		AND #{endDate} >= ta.REG_DATE
+		</if>
+		
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('menu')">
+					AND tb.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('userId')">
+					AND ta.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('ip')">
+					AND ta.IP LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							tb.MENU_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.USER_ID LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.IP LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE ASC
+	</select>
+	
+	
+	<select id="deleteCount" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TZAA_LOG_ACCESS 
+		WHERE  #{endDate} >= REG_DATE
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND REG_DATE >= #{startDate}
+		</if>
+	</select>
+
+	<delete id="deleteLogAccesss" parameterType="HashMap">
+		DELETE FROM TZAA_LOG_ACCESS
+		WHERE  #{endDate} >= REG_DATE
+		<if test="startDate !=null and ! startDate.equals('')">
+		AND REG_DATE >= #{startDate}
+		</if>
+	</delete>
+	
+	<select id="userYearStaticData" parameterType="HashMap" resultType="logUserYearStatisRO">
+	
+		SELECT taa.YEAR, taa.MONTH, taa.USER_TYPE, SUM(taa.ACCESS_COUNT) as CNT
+		FROM(
+			SELECT DATE_FORMAT(STR_TO_DATE(ta.LOG_YMD, '%Y%m%d'), '%Y') as YEAR,
+				DATE_FORMAT(STR_TO_DATE(ta.LOG_YMD, '%Y%m%d'), '%m') as MONTH,
+				CASE
+					WHEN ta.USER_ID IS NULL THEN 'anonymous'
+					WHEN (SELECT COUNT(1) FROM TAAA_ADMIN_USER WHERE USER_ID = ta.USER_ID) = 1 THEN 'admin'
+					ELSE 'user'
+				END as USER_TYPE,
+				ta.ACCESS_COUNT
+			FROM TZAB_LOG_ACCESS_TOTAL ta
+			WHERE DATE_FORMAT(str_to_date(ta.LOG_YMD, '%Y%m%d'), '%Y') = #{startDate}
+		) taa
+		GROUP BY taa.YEAR, taa.MONTH, taa.USER_TYPE
+		ORDER BY 1,2
+	
+	</select>
+	
+	<select id="userYearStaticExcelData" parameterType="HashMap" resultType="logUserYearStatisExcelRO">
+		SELECT 
+			LOG_YMD, 
+			USER_ID,
+			CASE
+				WHEN ta.USER_ID IS NULL THEN '미로그인'
+				WHEN (SELECT COUNT(1) FROM TAAA_ADMIN_USER WHERE USER_ID = ta.USER_ID) = 1 THEN '관리자'
+				ELSE '일반 사용자'
+			END AS USER_TYPE,
+			SUM(ACCESS_COUNT) as CNT
+		FROM TZAB_LOG_ACCESS_TOTAL ta
+		WHERE ta.LOG_YMD >= #{startDate}
+		AND #{endDate} >= ta.LOG_YMD 
+		GROUP BY ta.USER_ID, ta.LOG_YMD
+		ORDER BY 1 ASC
+	</select>
+	<select id="userStaticData" parameterType="HashMap" resultType="logUserStatisRO">
+		SELECT USER_ID, LOG_YMD, sum(ACCESS_COUNT) as cnt
+		FROM TZAB_LOG_ACCESS_TOTAL
+		WHERE LOG_YMD >= #{startDate}
+		AND #{endDate} >= LOG_YMD 
+		GROUP BY USER_ID, LOG_YMD
+	</select>
+	
+	<select id="menuStaticData" parameterType="HashMap" resultType="logMenuStatisRO">
+		SELECT ta.MENU_NAME, tb.LOG_YMD, tb.CNT
+		FROM 
+		(
+			SELECT * 
+			FROM TACB_MENU
+			WHERE MENU_URL <![CDATA[<>]]> ''
+			AND MENU_URL NOT LIKE '%#%'
+			AND CODE_MENU_TYPE <![CDATA[<>]]> 'quick'
+		) ta
+		LEFT JOIN
+		(
+			SELECT LOG_YMD, MENU_SEQ, SUM(ACCESS_COUNT) AS CNT
+			FROM TZAB_LOG_ACCESS_TOTAL
+			WHERE LOG_YMD = #{startDate}
+			GROUP BY LOG_YMD, MENU_SEQ
+		) tb
+		ON ta.SEQ = tb.MENU_SEQ
+	</select>
+	
+	
+	<select id="menuStaticExcelData" parameterType="HashMap" resultType="logMenuStatisRO">
+		SELECT tb.LOG_YMD, ta.SEQ, ta.MENU_NAME, tb.CNT
+		FROM 
+		(
+			SELECT * 
+			FROM TACB_MENU
+			WHERE MENU_URL <![CDATA[<>]]> ''
+			AND MENU_URL NOT LIKE '%#%'
+			AND CODE_MENU_TYPE <![CDATA[<>]]> 'quick'
+		) ta
+		LEFT JOIN
+		(
+			SELECT LOG_YMD, MENU_SEQ, SUM(ACCESS_COUNT) AS CNT
+			FROM TZAB_LOG_ACCESS_TOTAL
+			WHERE LOG_YMD >= #{startDate}
+			AND #{endDate} >= LOG_YMD 
+			GROUP BY LOG_YMD, MENU_SEQ
+		) tb
+		ON ta.SEQ = tb.MENU_SEQ
+		
+		ORDER BY 1, 2
+	</select>
+	
+
+</mapper>

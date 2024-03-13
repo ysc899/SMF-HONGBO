@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.InspectionRequestMapper">
+
+
+	<!-- 검사의뢰서 로그용 조회 -->
+	<select id="findRequestBySeq" parameterType="HashMap" resultType="inspectionRequestVO">
+		SELECT *
+		FROM TFAA_INSPECTION_REQUEST
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!--  검사의뢰서 관리 리스트 -->
+	<select id="findRequestList" parameterType="HashMap" resultType="inspectionRequestListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.THUM_FLAG, 
+			ta.PRINT_ORDER,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.EDIT_DATE 
+		FROM TFAA_INSPECTION_REQUEST ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY ta.CODE_LANG_TYPE DESC, ta.THUM_FLAG DESC, ta.PRINT_ORDER ASC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 검사의뢰서 관리 리스트 카운트 -->
+	<select id="countRequestList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TFAA_INSPECTION_REQUEST ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+	
+	<!-- 검사의뢰서 기본 정보 상세 조회용 -->
+	<select id="findRequestViewBySeq" parameterType="hashmap" resultType="inspectionRequestViewRO">
+		SELECT ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.TITLE, 
+			ta.FILE_PATH, 
+			ta.FILE_NAME, 
+			ta.THUM_FLAG,
+			ta.THUM_FILE_PATH,
+			ta.PRINT_ORDER,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TFAA_INSPECTION_REQUEST ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 검사의뢰서 파일라운로드용 조회용 -->
+	<select id="findRequestFileInfoBySeq" parameterType="hashmap" resultType="inspectionRequestVO">
+		SELECT ta.SEQ, 
+			ta.FILE_PATH, 
+			ta.FILE_NAME 
+		FROM TFAA_INSPECTION_REQUEST ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 언어코드에 따른 갯수 -->
+	<select id="getPrintOrder" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TFAA_INSPECTION_REQUEST
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND THUM_FLAG = #{thumFlag}
+	</select>
+	
+	
+	<!-- 검사의뢰서 순서 변경 로그 용 -->	
+	<select id="checkRequestOrder" parameterType="HashMap" resultType="inspectionRequestVO">
+		SELECT *
+		FROM TFAA_INSPECTION_REQUEST
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND THUM_FLAG = #{thumFlag}
+	</select>
+	
+	<!-- 검사의뢰서 출력 순서 증가 업데이트 -->
+	<update id="updateRequestOrderInc" parameterType="HashMap">
+		UPDATE TFAA_INSPECTION_REQUEST
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND THUM_FLAG = #{thumFlag}
+	</update>
+	
+	<!-- 검사의뢰서 출력 순서 감소 업데이트 -->
+	<update id="updateRequestOrderDec" parameterType="HashMap">
+		UPDATE TFAA_INSPECTION_REQUEST
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND THUM_FLAG = #{thumFlag}
+	</update>
+	
+
+	
+	<!-- 검사의뢰서 등록 -->
+	<insert id="addRequest" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TFAA_INSPECTION_REQUEST
+	(
+	    CODE_LANG_TYPE,
+	    TITLE,
+	    FILE_PATH,
+	    THUM_FLAG,
+	    THUM_FILE_PATH,
+	    FILE_NAME,
+	    PRINT_ORDER,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	(
+		#{codeLangType},
+		#{title}, 
+		#{filePath},
+		#{thumFlag},
+		#{thumFilePath},
+		#{fileName},
+		#{printOrder},
+		#{regUserId},
+		#{regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</insert>
+	
+	
+	
+	<!-- 검사의뢰서 수정 -->
+	<update id="editRequest" parameterType="HashMap">
+		UPDATE TFAA_INSPECTION_REQUEST
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			TITLE= #{title},
+			FILE_PATH= #{filePath},
+			THUM_FLAG= #{thumFlag},
+			THUM_FILE_PATH= #{thumFilePath},
+			FILE_NAME= #{fileName},
+			PRINT_ORDER= #{printOrder},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+
+	<!-- 검사의뢰서 삭제 -->
+	<update id="deleteRequest" parameterType="HashMap">
+		UPDATE TFAA_INSPECTION_REQUEST
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 사용자용 -->
+	<!--  검사의뢰서 사용자 리스트 -->
+	<select id="findUserRequestList" parameterType="HashMap" resultType="requestDataRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.THUM_FLAG,
+			ta.THUM_FILE_PATH,
+			ta.PRINT_ORDER
+		FROM TFAA_INSPECTION_REQUEST ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY ta.PRINT_ORDER ASC
+	</select>
+	
+		<!--  검사의뢰서 메인 검색 리스트 -->
+	<select id="findUserMainSearchRequestList" parameterType="HashMap" resultType="requestDataRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.EDIT_DATE 
+		FROM TFAA_INSPECTION_REQUEST ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY ta.PRINT_ORDER ASC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 검사의뢰서 메인 검색 리스트 카운트 -->
+	<select id="countUserMainSearchRequestList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TFAA_INSPECTION_REQUEST ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+	
+		<!-- 검사의뢰서 파일라운로드용 조회용 -->
+	<select id="findUserThumFileInfoBySeq" parameterType="hashmap" resultType="inspectionRequestVO">
+		SELECT ta.SEQ, 
+			ta.THUM_FLAG,
+			ta.THUM_FILE_PATH
+		FROM TFAA_INSPECTION_REQUEST ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	
+	
+
+</mapper>

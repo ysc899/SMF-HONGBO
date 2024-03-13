@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+		<bean id="customeUserDetailsService" class="com.seegene.web.auth.service.CustomUserDetailsService"></bean>
+	 	<bean id="customeAuthenticationProvider" class="com.seegene.web.auth.provider.CustomAuthenticationProvider"></bean> 
+
+<!-- 		<bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean> -->
+		<bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder">
+		  <constructor-arg name="strength" value="256"></constructor-arg>
+		</bean>
+		
+		<!-- 로그인 성공 핸들러 -->
+		<bean id="loginSuccessHandler" class="com.seegene.web.auth.handler.LoginSuccessHandler" >
+		</bean>
+
+		<!-- https://docs.spring.io/autorepo/docs/spring-security/4.0.3.RELEASE/apidocs/org/springframework/security/authentication/encoding/ShaPasswordEncoder.html -->
+<!-- 		<bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder"> -->
+<!-- 		    <constructor-arg value="256"/> -->
+<!-- 		</bean> -->
+	
+	
+	
+		<security:authentication-manager alias="authenticationManager"> <!-- 인메모리 사용자 db방벙 --> 
+			<security:authentication-provider ref="customeAuthenticationProvider">
+			</security:authentication-provider>
+			<security:authentication-provider user-service-ref="customeUserDetailsService">
+				 <security:password-encoder ref="passwordEncoder"></security:password-encoder> 
+			</security:authentication-provider>
+		</security:authentication-manager>	
+		
+	    <security:http pattern="/css/**" security="none"/>
+		<security:http pattern="/html/**" security="none"/>
+	    <security:http pattern="/images/**" security="none"/>
+	 	<security:http pattern="/js/**" security="none"/>
+	 	<security:http pattern="/resource/**" security="none"/>
+	 	<!-- 관리자 관련 -->
+	 	<security:http pattern="/admin/css/**" security="none"/>
+	 	<security:http pattern="/admin/font/**" security="none"/>
+	 	<security:http pattern="/admin/img/**" security="none"/>
+	 	<!-- 사용자 관련 -->
+	 	<security:http pattern="/user/css/**" security="none"/>
+	 	<security:http pattern="/user/font/**" security="none"/>
+	 	<security:http pattern="/user/img/**" security="none"/>
+	 	<security:http pattern="/user/js/**" security="none"/>
+	 	<security:http pattern="/user/file/**" security="none"/>
+	 	<security:http pattern="/user/video/**" security="none"/>
+	 	
+	 	
+		<security:http pattern="\A/WEB-INF/jsp/.*\Z" request-matcher="regex" security="none"/>
+		
+			
+		<security:http auto-config="true" use-expressions="true"> <!-- 앞에 security는 네임스페이스임    expressio은 ip와같이 접근 권한 제한을 좀더풍부하게 할수 있음-->
+			<security:intercept-url pattern="/manager/**" access="hasAuthority('USER_MANAGER')" />
+			<!--<security:intercept-url pattern="/manager/**" access="hasAuthority(ROLE_USER)" /> hasRole/hasAuthority 같은뜻 저권한 가지만 사람만 접근가 -->
+			<security:intercept-url pattern="/member/**" access="hasAuthority('USER')" /> <!-- 인증된 사람만 접근 가능  -->
+			<security:intercept-url pattern="/user/**" access="hasAuthority('USER')" /> <!-- 인증된 사람만 접근 가능  -->
+			
+			
+
+<!-- 			<security:intercept-url pattern="/main.do" access="permitAll" /> -->
+			
+			<!--  관리자 권한 설정  -->
+<!-- 			<security:intercept-url pattern="/admin/**" access="hasAuthority('ROLE_ADMIN')" /> -->
+			<security:intercept-url pattern="/admin/login.do" access="permitAll" />
+			<security:intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
+			
+			
+			<security:intercept-url pattern="/**" access="permitAll" />
+			
+<!-- 				default-target-url="/auth/successLogin.do" -->
+			<security:form-login 
+ 				login-page="/"
+				login-processing-url="/auth/login.do"
+				username-parameter="j_username"
+				password-parameter="j_password"
+				authentication-failure-url="/admin/login.do?fail=true"
+				authentication-success-handler-ref="loginSuccessHandler"
+				/>
+				
+			
+				
+			<security:logout
+				logout-url="/auth/logout.do"
+				logout-success-url="/" />
+			
+<!-- 			<security:session-management invalid-session-url="/">  -->
+			<security:session-management> 
+				<security:concurrency-control max-sessions="999" error-if-maximum-exceeded="false" />
+<!-- 				<security:concurrency-control max-sessions="1" error-if-maximum-exceeded="false" /> -->
+			</security:session-management>
+
+		</security:http>
+	
+</beans>

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.CodeMapper">
+
+	<!-- 부모 코드에 해당하는 자식 코드 리스트 관리자에서 등록 수정 시 사용 -->
+	<select id="findSlaveCodeByMasterCode" parameterType="hashmap" resultType="codeSlaveRO">
+		SELECT SEQ, SLAVE_CODE, SLAVE_CODE_NAME
+		FROM TABB_CODE_SLAVE
+		WHERE DELETE_FLAG = 'N'
+		AND MASTER_CODE = #{masterCode}
+		ORDER BY CODE_ORDER
+		
+	</select>
+	
+	<!-- 코드 마스터 로그용 조회 -->
+	<select id="findMasterBySeq" parameterType="HashMap" resultType="codeMasterVO">
+		SELECT *
+		FROM TABA_CODE_MASTER
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 코드 서브 로그용 조회 -->
+	<select id="findSlaveByMasterCode" parameterType="HashMap" resultType="codeSlaveVO">
+		SELECT *
+		FROM TABB_CODE_SLAVE
+		WHERE MASTER_CODE = #{masterCode}
+	</select>
+	
+	<!-- 코드 서브 로그용 조회 -->
+	<select id="findSlaveInfoByMasterCode" parameterType="HashMap" resultType="codeSlaveInfoVO">
+		SELECT *
+		FROM TABC_CODE_SLAVE_INFO
+		WHERE MASTER_CODE = #{masterCode}
+	</select>
+	
+	<!-- 마스터 코드 관리 리스트 -->
+	<select id="findMasterCodeList" parameterType="HashMap" resultType="codeMasterListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.MASTER_CODE,
+			ta.MASTER_CODE_NAME,
+			ta.SYSTEM_CODE_FLAG,
+			ta.EDIT_DATE 
+		FROM TABA_CODE_MASTER ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('code')">
+					AND ta.MASTER_CODE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MASTER_CODE_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MASTER_CODE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.MASTER_CODE_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+	
+	<!-- 마스터 코드 리스트 카운트용 -->
+	<select id="countMasterCodeList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TABA_CODE_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('code')">
+					AND ta.MASTER_CODE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MASTER_CODE_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MASTER_CODE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.MASTER_CODE_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 마스터 코드 상세 조회 -->
+	<select id="findMasterCodeBySeq" parameterType="hashmap" resultType="codeMasterViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.MASTER_CODE,
+			ta.MASTER_CODE_NAME,
+			ta.MASTER_CODE_DES,
+			ta.SYSTEM_CODE_FLAG,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TABA_CODE_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	<!-- 마스터 하위 코드 조회용 -->
+	<select id="findSlaveCodeViewByMasterCode" parameterType="hashmap" resultType="codeSlaveVO">
+		SELECT 
+			ta.SEQ,
+			ta.SLAVE_CODE,
+			ta.SLAVE_CODE_NAME,
+			ta.SLAVE_CODE_DES,
+			ta.CODE_ORDER,
+			ta.EDIT_DATE 
+		FROM TABB_CODE_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.MASTER_CODE = #{masterCode}
+		ORDER BY ta.CODE_ORDER
+	</select>
+	
+	<!-- 마스터 하위 코드  상세 조회용 -->
+	<select id="findSlaveCodeDtlBySeq" parameterType="hashmap" resultType="codeSlaveVO">
+		SELECT 
+			ta.SEQ,
+			ta.SLAVE_CODE,
+			ta.SLAVE_CODE_NAME,
+			ta.SLAVE_CODE_DES,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TABB_CODE_SLAVE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.MASTER_CODE = #{masterCode}
+		AND ta.seq = #{seq}
+	</select>
+	
+	<!-- 마스터 하위 코드  상세 조회용 -->
+	<select id="findSlaveCodeInfoByCode" parameterType="hashmap" resultType="codeSlaveInfoRO">
+		SELECT 
+			ta.SEQ,
+			ta.SLAVE_CODE,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.INFO_NAME,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TABC_CODE_SLAVE_INFO ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.MASTER_CODE = #{masterCode}
+		AND ta.SLAVE_CODE = #{slaveCode}
+	</select>
+	
+	<!-- 마스터 코드 수정 -->
+	<update id="editMasterCode" parameterType="hashmap">
+		UPDATE TABA_CODE_MASTER
+		SET 
+			MASTER_CODE_NAME= #{masterCodeName},
+			MASTER_CODE_DES= #{masterCodeDes},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND MASTER_CODE = #{masterCode}
+	</update>
+	
+	<!-- 하위코드 수정 -->
+	<update id="editSlaveCode" parameterType="hashmap">
+		UPDATE TABB_CODE_SLAVE
+		SET 
+			SLAVE_CODE_NAME= #{slaveCodeName},
+			SLAVE_CODE_DES= #{slaveCodeDes},
+			CODE_ORDER = #{codeOrder},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND MASTER_CODE = #{masterCode}
+		AND SLAVE_CODE = #{slaveCode}
+	</update>
+	
+	
+	<!-- 하위코드 다국어용 정보 수정 -->
+	<update id="editSlaveInfo" parameterType="hashmap">
+		UPDATE TABC_CODE_SLAVE_INFO
+		SET 
+			INFO_NAME= #{infoName},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND MASTER_CODE = #{masterCode}
+		AND SLAVE_CODE = #{slaveCode}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</update>
+	
+	
+	<!-- 하위코드 등록 -->
+	<insert id="addSlaveCodes" parameterType="java.util.List">
+		INSERT INTO TABB_CODE_SLAVE
+			( 
+				MASTER_CODE,
+				SLAVE_CODE,
+				SLAVE_CODE_NAME,
+				SLAVE_CODE_DES,
+				CODE_ORDER,
+				REG_USER_ID,
+				EDIT_USER_ID,
+				REG_DATE,
+				EDIT_DATE,
+				DELETE_FLAG
+			)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.masterCode}, 
+				#{item.slaveCode}, 
+				#{item.slaveCodeName}, 
+				#{item.slaveCodeDes}, 
+				#{item.codeOrder}, 
+				#{item.regUserId}, 
+				#{item.regUserId}, 
+				now(), 
+				now(), 
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 하위코드 다국어 정보 등록 -->
+	<insert id="addSlaveCodeInfos" parameterType="java.util.List">
+		INSERT INTO TABC_CODE_SLAVE_INFO
+			( 
+				MASTER_CODE,
+				SLAVE_CODE,
+				CODE_LANG_TYPE,
+				INFO_NAME,
+				REG_USER_ID,
+				EDIT_USER_ID,
+				REG_DATE,
+				EDIT_DATE,
+				DELETE_FLAG
+			)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.masterCode}, 
+				#{item.slaveCode}, 
+				#{item.codeLangType}, 
+				#{item.infoName}, 
+				#{item.regUserId}, 
+				#{item.regUserId}, 
+				now(), 
+				now(), 
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	
+	<!-- 사용자용 코드들 -->
+	<!-- 메모리 로드용 모든 코드 마스터 -->
+	<select id="findAllMasterCode" resultType="String">
+		SELECT MASTER_CODE
+		FROM TABA_CODE_MASTER
+		WHERE DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 메모리 로드용 모든 코드 서브 -->
+	<select id="findAllSlave" resultType="codeSlaveVO">
+		SELECT *
+		FROM TABB_CODE_SLAVE
+		WHERE DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 메모리 로드용 모든 코드 서브 데이터-->
+	<select id="findAllSlaveInfo" resultType="codeSlaveInfoVO">
+		SELECT *
+		FROM TABC_CODE_SLAVE_INFO
+		WHERE DELETE_FLAG = 'N'
+	</select>
+	
+</mapper>

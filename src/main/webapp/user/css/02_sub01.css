@@ -1,0 +1,605 @@
+/*03_sub02 css*/
+
+/*banner_bg area*/
+
+.banner_box{
+  position: absolute;
+  height: 220px;
+  overflow: hidden;
+  min-width:1280px;
+  width: 100%;
+/*   top: 150px; */
+  top: 120px;
+  z-index: -9;
+}
+
+.banner_bg{
+  position:absolute;
+  top:0;
+  width:100%;
+  height:220px;
+  background:url(../img/sub/content_bg5.png) no-repeat 0 0;
+  background-size:cover;
+  z-index: -10;
+  transition: all 1.7s ease;
+  transform: scale(1.05) rotate(0deg);
+}
+
+/*container*/
+
+#container{
+}
+
+/*sub_menu*/
+
+#container .sub_menu ul > li{
+  position: relative;
+}
+
+#container .sub_menu ul > li:hover ul{
+  display:block;
+}
+
+#container .sub_menu ul > li > ul{
+height: auto;
+position: absolute;
+width: 100%;
+height: 100px;
+margin-top:0px;
+/* padding-top: 100px; */
+/* top: 30px; */
+/* padding-top: 50px; */
+/* background-color: #fff; */
+display: none;
+z-index: 1;
+}
+
+#container .sub_menu ul > li > .depth_ul{
+  left:-30px;
+}
+
+  #container .sub_menu ul > ._submenu_2 > ul > li{
+  width:150px;
+  left:-57px;
+  }
+
+#container .sub_menu ul > li > ul > li{
+    color:#888;
+    font-size:15px;
+    display: block;
+    width:150px;
+    height:44px;
+    left:-30px;
+    border-top:none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin:0;
+    line-height: 2.7em;
+    border:1px solid #ccc;
+    border-bottom:none;
+    background:#fff;
+}
+
+#container .sub_menu ul > li > ul > li:last-child{
+  border-bottom:1px solid #ccc;
+}
+
+#container .sub_menu ul > li > ul > li:hover{
+  text-decoration: underline;
+}
+
+  /*sub_story*/
+
+#container .sub_story{
+/*   border-top:1px solid #999; */
+  margin-top:0px;
+  margin-bottom:50px;
+  position: relative;
+  top:-20px;
+  opacity: 0;
+}
+
+#container .sub_story ul.tabs{
+/*   margin-top:40px; */
+  margin-top:10px;
+  border-collapse: collapse;
+  overflow:hidden;
+}
+
+#container .sub_story ul.tabs li{
+  float:left;
+/*   width:254.8px; */
+  width:182px;
+  border:1px solid #ccc;
+  border-left:none;
+  border-collapse: collapse;
+  height:45px;
+  color:#666666;
+  font-size:16px;
+  cursor:pointer;
+  line-height:45px;
+}
+
+#container .sub_story ul.tabs li:first-child{
+  border-left:1px solid #ccc;
+}
+
+#container .sub_story ul.tabs li.current{
+  color:#fff;
+  font-size:16px;
+  font-weight:400;
+  background-color:#bc1225;
+}
+
+#container .sub_story ul.tabs li:hover{
+  transition-duration: 0.5s;
+}
+
+/*.tab_common*/
+
+#container .tab_common{
+  margin-top:10px;
+  overflow:hidden;
+}
+
+#container .tab_common > p{
+  font-size:22px;
+  font-weight:600;
+  background:url(../img/sub/red_bar2.png) no-repeat 0 3px;
+  padding-left:10px;
+/*   padding-bottom:20px; */
+  margin-top:50px;
+/*   border-bottom:1px solid #ccc; */
+  text-align: left;
+  color:#b51927;
+}
+
+/*people_top01*/
+
+#container .tab_common .people_top ul{
+  border-bottom:1px solid #ccc;
+  overflow:hidden;
+}
+
+#container .tab_common .people_top ul li{
+  float:left;
+/*   width:640px; */
+  width:550px;
+  height:320px;
+}
+
+#container .tab_common .people_top ul li table{
+  text-align: left;
+  width:100%;
+  cursor:pointer;
+}
+
+#container .tab_common .people_top ul li table:hover .td_all{
+  background: url(../img/people2/hover_bg2.png) no-repeat 60px 70px, url(../img/sub/sil3.png) no-repeat right 60px;
+  background-size:125%,1px;
+}
+
+#container .tab_common .people_top ul li table:hover .td_all_not{
+  background: url(../img/people2/hover_bg2.png) no-repeat 60px 70px;
+  background-size:125%;
+}
+
+#container .tab_common .people_top ul li table td{
+}
+
+#container .tab_common .people_top ul li table td.td_small{
+  width:40%;
+  height:320px;
+  padding-left:70px;
+}
+
+#container .tab_common .people_top ul li table td.td_all{
+  width: 60%;
+  height: 320px;
+  background-image: url(../img/people2/bg.png),url(../img/sub/sil3.png);
+  background-repeat: no-repeat;
+  background-position: 60px 70px, right 60px;
+  background-size: 125%,1px;
+  position: relative;
+}
+
+#container .tab_common .people_top ul li table td.td_all_not{
+  width: 60%;
+  height: 320px;
+  background-image: url(../img/people2/bg.png),url(../img/sub/sil3.png);
+  background-repeat: no-repeat;
+  background-position: 60px 70px, right 60px;
+  background-size: 125%,1px;
+  position: relative;
+}
+
+#container .tab_common .people_top ul li table td.sil{
+  width:60%;
+  height:320px;
+  background-image:url(../img/people2/bg.png);
+  background-repeat:no-repeat;
+  background-position: 60px 70px;
+}
+
+#container .tab_common .people_top ul li table td.td_all .img_top{
+  position: absolute;
+  bottom:0;
+  right:120px;
+}
+
+#container .tab_common .people_top ul li table td.td_all .img_small{
+  position: absolute;
+  bottom:0;
+  right:120px;
+}
+
+#container .tab_common .people_top ul li table td.td_all_not .img_top{
+  position: absolute;
+  bottom:0;
+  right:120px;
+}
+
+#container .tab_common .people_top ul li table td.td_all_not .img_small{
+  position: absolute;
+  bottom:0;
+  right:120px;
+}
+
+
+#container .tab_common .people_top ul li table tbody td span{
+  font-size:16px;
+  color:#858585;
+  margin-bottom:10px;
+  display: inline-block;
+}
+
+#container .tab_common .people_top ul li table tbody td p{
+  font-size:21px;
+  font-weight:600;
+  color:#333;
+  margin-bottom:10px;
+}
+
+#container .tab_common .people_top ul li table tbody td small{
+  font-size:13px;
+  display:block;
+  margin-bottom:20px;
+  color:#999;
+}
+
+#container .tab_common .people_top ul li table tbody td b{
+  font-size:15px;
+  font-weight:600;
+  color:#b21b2c;
+  padding:10px 15px;
+  display: inline-block;
+  border:1px solid #b21b2c;
+  border-radius: 10px 0 10px 0;
+  cursor:pointer;
+}
+
+/*people_top02*/
+
+#container .tab_common .people_top2 ul{
+  border-bottom:1px solid #ccc;
+  overflow:hidden;
+}
+
+#container .tab_common .people_top2 ul li{
+  float:left;
+  width:640px;
+  height:300px;
+}
+
+#container .tab_common .people_top2 ul li table{
+  text-align: left;
+  width:100%;
+}
+
+#container .tab_common .people_top2 ul li table td{
+}
+
+#container .tab_common .people_top2 ul li table td.td_small{
+  width:40%;
+  height:300px;
+  padding-left:70px;
+}
+
+#container .tab_common .people_top2 ul li table td.td_all{
+  width: 60%;
+  height: 300px;
+  background-image: url(../img/people2/bg.png),url(../img/sub/sil3.png);
+  background-repeat: no-repeat;
+  background-position: 60px 50px, right 40px;
+  background-size: 125%,1px;
+  position: relative;
+}
+
+#container .tab_common .people_top2 ul li table td.sil{
+  width:60%;
+  height:320px;
+  background-image:url(../img/people2/bg.png);
+  background-repeat:no-repeat;
+  background-position: 60px 70px;
+}
+
+#container .tab_common .people_top2 ul li table td.td_all .img_top{
+  position: absolute;
+  bottom:0;
+  right:120px;
+}
+
+#container .tab_common .people_top2 ul li table td.td_all .img_small{
+  position: absolute;
+  bottom:0;
+  right:120px;
+}
+
+
+#container .tab_common .people_top2 ul li table tbody td span{
+  font-size:16px;
+  color:#858585;
+  margin-bottom:10px;
+  display: inline-block;
+}
+
+#container .tab_common .people_top2 ul li table tbody td p{
+  font-size:21px;
+  font-weight:600;
+  color:#333;
+  margin-bottom:10px;
+}
+
+#container .tab_common .people_top2 ul li table tbody td small{
+  font-size:13px;
+  display:block;
+  margin-bottom:20px;
+  color:#999;
+}
+
+#container .tab_common .people_top2 ul li table tbody td b{
+  font-size:15px;
+  font-weight:600;
+  color:#b21b2c;
+  padding:10px 15px;
+  display: inline-block;
+  border:1px solid #b21b2c;
+  border-radius: 10px 0 10px 0;
+  cursor:pointer;
+}
+
+/*-------------------------------------------------------------------------------*/
+
+#container .tab_common .people1 ul{
+  overflow:hidden;
+}
+
+#container .tab_common .people1 ul li{
+  border-bottom:1px solid #ccc;
+  float:left;
+}
+
+#container .tab_common .people1 ul li table{
+/*   width:426px; */
+  width:366px;
+  height:160px;
+  display:block;
+  text-align: left;
+  cursor:pointer;
+}
+
+#container .tab_common .people1 ul li table tbody td{
+/*   width:123px; */
+  width:119px;
+}
+
+#container .tab_common .people1 ul li table:hover tbody td.sil{
+/*   background: url(../img/people2/hover_bg.png) no-repeat 48px 55px ,  url(../img/sub/sil.png) no-repeat 100% 50%; */
+  background: url(../img/people2/hover_bg.png) no-repeat 88px 45px ,  url(../img/sub/sil.png) no-repeat 100% 50%;
+}
+
+#container .tab_common .people1 ul li table:hover tbody .sil_not{
+/*   background: url(../img/people2/hover_bg.png) no-repeat 48px 55px; */
+  background: url(../img/people2/hover_bg.png) no-repeat 88px 45px;
+}
+
+#container .tab_common .people1 ul li table tbody td.sil{
+  background: url(../img/sub/sil.png) no-repeat 100% 50%;
+  padding-right: 2px;
+  cursor:pointer;
+}
+
+#container .tab_common .people1 ul li table tbody td.name_td{
+  padding-left:30px;
+/*   width:124px; */
+  width:243px;
+}
+
+#container .tab_common .people1 ul li table tbody td img{
+/*   margin-top:20px; */
+/*   margin-right:30px; */
+  margin-left:30px;
+  display:block;
+}
+
+#container .tab_common .people1 ul li table tbody td span{
+  font-size:17px;
+  color:#858585;
+  margin-bottom:10px;
+  display: inline-block;
+}
+
+#container .tab_common .people1 ul li table tbody td p{
+  font-size:22px;
+  font-weight:600;
+  color:#333;
+  margin-bottom:10px;
+}
+
+#container .tab_common .people1 ul li table tbody td small{
+  font-size:14px;
+  color:#999;
+}
+
+#container .tab_common .people1 ul li table tbody td b{
+/*   font-size:15px; */
+  font-size:14px;
+  font-weight:600;
+  color:#b21b2c;
+  padding:10px 15px;
+  display: inline-block;
+  border:1px solid #b21b2c;
+  border-radius: 10px 0 10px 0;
+  cursor:pointer;
+}
+
+.tab-content{
+  display: none;
+}
+
+.tab-content.current{
+  display: inherit;
+}
+
+/*popup*/
+
+#modal{
+  position: fixed;
+  z-index: 7;
+}
+
+#modal .popup_bg{
+  position: fixed;
+  top:0;
+  width:100%;
+  height:100%;
+  background:#000;
+  opacity: 0.5;
+  z-index: 7;
+}
+
+#modal #popup{
+  width:930px;
+  height:525px;
+  transform: translate(-50%,-50%);
+  top:50%;
+  left:50%;
+  border-radius: 10px 0 7px 0;
+  background:#fff;
+  opacity: 1;
+  z-index: 10;
+  position: fixed;
+}
+
+#modal #popup .popup_title{
+  width:100%;
+  height:65px;
+  border-radius: 7px 0 0 0;
+  background:url(../img/people2/popup_title.png) no-repeat 0 0;
+  text-align: center;
+  position: relative;
+}
+
+#modal #popup .popup_title span{
+  font-size:18px;
+  font-weight:600;
+  display: inline-block;
+  color:#fff;
+  margin-top:22px;
+}
+
+#modal #popup .popup_title b{
+  position: absolute;
+  top:20px;
+  right:-35px;
+  cursor: pointer;
+}
+
+#modal #popup table{
+  overflow:hidden;
+  width:100%;
+}
+
+#modal #popup table tr td{
+  height:460px;
+  margin:0 auto;
+}
+
+#modal #popup table tr .popup_td01{
+  width:340px;
+  background-image:url(../img/people2/01_popup.png),url(../img/sub/sil4.png);
+  background-repeat: no-repeat;
+  background-position: 60px 50px, right 40px;
+  position: relative;
+}
+
+#modal #popup table tr .popup_td01 > div{
+  position: absolute;
+  left:120px;
+  bottom: 40px;
+}
+
+#modal #popup table tr .popup_td01 p{
+  font-size:24px;
+  font-weight:600;
+  color:#111;
+}
+
+#modal #popup table tr .popup_td01 span{
+  font-size:17px;
+  color:#666;
+  margin:10px 0;
+  display:block;
+}
+
+#modal #popup table tr .popup_td01 small{
+  font-size:14px;
+  color:#999;
+}
+
+#modal #popup table tr .popup_td02{
+  background:url(../img/people2/bg.png) no-repeat 320px 200px;
+  background-size:338px;
+  text-align: left;
+}
+
+#modal #popup table tr .popup_td02 dl{
+  margin-left:60px;
+}
+
+#modal #popup table tr .popup_td02 dl dt{
+  font-size:20px;
+  font-weight:600;
+  margin-bottom:10px;
+  color:#111;
+}
+
+#modal #popup table tr .popup_td02 dl dd.dot_dd{
+  font-size:15px;
+  background: url(../img/dot.png) no-repeat 0 10px;
+  padding-left:10px;
+  line-height: 1.5em;
+  color:#666;
+}
+
+#modal #popup table tr .popup_td02 dl .red_ico{
+  font-size:15px;
+  color:#333;
+  margin:5px 0;
+  line-height: 1.2em;
+}
+
+#modal #popup table tr .popup_td02 dl .red_ico01{
+  margin-top:15px;
+}
+
+#modal #popup table tr .popup_td02 dl .red_ico b{
+  font-size:13px;
+  padding:1px;
+  display:inline-block;
+  border:1px solid #bc1225;
+  background: #bc1225;
+  color:#fff;
+  border-radius: 2px;
+  margin-right:5px;
+}

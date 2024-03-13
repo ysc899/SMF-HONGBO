@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.HealthInfoMapper">
+
+
+	<!-- 건강 정보 단일 조회 -->
+	<select id="findHealthInfoBySeq" parameterType="HashMap" resultType="healthInfoVO">
+		SELECT *
+		FROM TJAA_HEALTH_INFO
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 건강 정보 출처 로그용 조회 -->
+	<select id="findHealthSourceByHealthSeq" parameterType="HashMap" resultType="healthInfoSourceVO">
+		SELECT *
+		FROM TJAB_HEALTH_INFO_SOURCE
+		WHERE HEALTH_INFO_SEQ = #{seq}
+	</select>
+	
+	<!-- 건강 정보 수기 검사 정보 로그용 조회 -->
+	<select id="findHealthHardTestByHealthSeq" parameterType="HashMap" resultType="healthInfoTestHardInfoVO">
+		SELECT *
+		FROM TJBC_TEST_HARD_INFO
+		WHERE HEALTH_INFO_SEQ = #{seq}
+	</select>
+	
+	<!-- 건강 정보 검색 검사 정보 로그용 조회 -->
+	<select id="findHealthSearchTestByHealthSeq" parameterType="HashMap" resultType="healthInfoTestCodeVO">
+		SELECT *
+		FROM TJBA_TEST_CODE
+		WHERE HEALTH_INFO_SEQ = #{seq}
+	</select>
+	
+	<!-- 원클릭 건강정보 관리 리스트 -->
+	<select id="findHelthInfoList" parameterType="HashMap" resultType="healthInfoListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.SUB_TITLE, 
+			ta.PRINT_FLAG, 
+			ta.PRINT_ORDER,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.VIEW_COUNT,
+			ta.EDIT_DATE 
+		FROM TJAA_HEALTH_INFO ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('subtitle')">
+					AND ta.SUB_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.SUB_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY PRINT_ORDER
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 원클릭 건강정보 관리 리스트 카운트 -->
+	<select id="countHelthInfoList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TJAA_HEALTH_INFO ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('subtitle')">
+					AND ta.SUB_TITLE like CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE like CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.SUB_TITLE like CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 건강정보 기본 정보 상세 조회용 -->
+	<select id="findHealthInfoViewBySeq" parameterType="hashmap" resultType="healthInfoViewRO">
+		SELECT ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.TITLE,
+			ta.SUB_TITLE,
+			CASE
+				WHEN ta.IMG_TITLE_THUM_PATH IS NULL THEN 'N'
+				WHEN ta.IMG_TITLE_THUM_PATH = '' THEN 'N'
+				ELSE 'Y'
+			END AS IMG_THUM_FLAG,
+			ta.IMG_TITLE_THUM_PATH,
+			CASE
+				WHEN ta.IMG_CONTENT_PATH IS NULL THEN 'N'
+				WHEN ta.IMG_CONTENT_PATH = '' THEN 'N'
+				ELSE 'Y'
+			END AS IMG_CONTENT_FLAG,
+			ta.IMG_CONTENT_PATH,
+			ta.WRITER,
+			ta.INSPECTOR, 
+			ta.INSPECTOR_CMT,
+			ta.PRINT_FLAG,
+			ta.PRINT_ORDER,
+			ta.VIEW_COUNT,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TJAA_HEALTH_INFO ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 건강정보 출처 정보 상세 조회용 -->
+	<select id="findHealthSourceViewByHealthSeq" parameterType="hashmap" resultType="healthInfoSourceVO">
+		SELECT SEQ, 
+			SOURCE,
+			COMMENT, 
+			URL,
+			EDIT_DATE,
+			EDIT_USER_ID
+		FROM TJAB_HEALTH_INFO_SOURCE
+		WHERE DELETE_FLAG = 'N'
+		AND HEALTH_INFO_SEQ = #{seq}
+	</select>
+	<!-- 건강정보 검사코드 리스트 -->
+	<select id="findHealthTestViewByHealthSeq" parameterType="hashmap" resultType="healthInfoTestListRO">
+		(
+			SELECT ta.SEQ, 
+				ta.TEST_CODE, 
+				ta.TEST_NAME, 
+				ta.COMMENT, 
+				ta.EDIT_DATE,
+				'N' as HARD_FALG
+			FROM TJBA_TEST_CODE ta
+			WHERE ta.DELETE_FLAG = 'N'
+			AND ta.HEALTH_INFO_SEQ = #{seq}
+		)
+		UNION ALL
+		(
+			SELECT tc.SEQ,
+				tc.TEST_CODE,
+				tc.TEST_NAME, 
+				tc.COMMENT,
+				tc.EDIT_DATE,
+				'Y' as HARD_FLAG
+			FROM TJBC_TEST_HARD_INFO tc
+			WHERE tc.DELETE_FLAG = 'N'
+			AND tc.HEALTH_INFO_SEQ = #{seq}
+		)
+	</select>
+	
+	<!-- 건강정보 기본 정보 상세 조회용 -->
+	<select id="findHealthInfoEditBySeq" parameterType="hashmap" resultType="healthInfoTestEditRO">
+		SELECT ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.TITLE,
+			ta.SUB_TITLE,
+			CASE
+				WHEN ta.IMG_TITLE_THUM_PATH IS NULL THEN 'N'
+				WHEN ta.IMG_TITLE_THUM_PATH = '' THEN 'N'
+				ELSE 'Y'
+			END AS IMG_THUM_FLAG,
+			ta.IMG_TITLE_THUM_PATH,
+			CASE
+				WHEN ta.IMG_CONTENT_PATH IS NULL THEN 'N'
+				WHEN ta.IMG_CONTENT_PATH = '' THEN 'N'
+				ELSE 'Y'
+			END AS IMG_CONTENT_FLAG,
+			ta.IMG_CONTENT_PATH,
+			ta.WRITER,
+			ta.INSPECTOR, 
+			ta.INSPECTOR_CMT,
+			ta.PRINT_FLAG,
+			ta.PRINT_ORDER,
+			ta.VIEW_COUNT,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TJAA_HEALTH_INFO ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 건강정보 검사코드 수정용 리스트 -->
+	<select id="findHealthTestEditByHealthSeq" parameterType="hashmap" resultType="healinfoTestPO">
+		(
+			SELECT tc.SEQ,
+				tc.TEST_CODE,
+				tc.TEST_NAME,
+				tc.COMMENT,
+				tc.PROCESS_DAY,
+				tc.SPECIMEN,
+				tc.TEST_DAY,
+				tc.TEST_METHOD,
+				tc.VOLUME,
+				'Y' as HARD_FLAG,
+				tc.REG_DATE
+			FROM TJBC_TEST_HARD_INFO tc
+			WHERE tc.DELETE_FLAG = 'N'
+			AND tc.HEALTH_INFO_SEQ = #{seq}
+		)
+		UNION ALL
+		(
+			SELECT ta.SEQ, 
+				ta.TEST_CODE, 
+				ta.TEST_NAME,
+				ta.COMMENT,
+				'' as PROCESS_DAY,
+				'' as SPECIMEN,
+				'' as TEST_DAY,
+				'' as TEST_METHOD,
+				'' as VOLUME,
+				'N' as HARD_FALG,
+			     ta.REG_DATE
+			FROM TJBA_TEST_CODE ta
+			WHERE ta.DELETE_FLAG = 'N'
+			AND ta.HEALTH_INFO_SEQ = #{seq}
+		)
+	</select>
+	
+	<!-- 건강정보 검사코드 수기입력 정보 조회 -->
+	<select id="findHealthTestHardInfoBySeq" parameterType="hashmap" resultType="healthInfoTestHardInfoVO">
+		SELECT 
+			ta.SEQ, 
+			ta.TEST_CODE, 
+			ta.TEST_NAME, 
+			ta.COMMENT,
+			ta.PROCESS_DAY, 
+			ta.SPECIMEN, 
+			ta.TEST_DAY, 
+			ta.TEST_METHOD, 
+			ta.VOLUME, 
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE
+		FROM TJBC_TEST_HARD_INFO ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 건강정보 검사코드 검색입력 정보 조회 -->
+	<select id="findHealthTestInfoBySeq" parameterType="hashmap" resultType="healthInfoTestHardInfoVO">
+		SELECT 
+			ta.SEQ, 
+			ta.TEST_CODE, 
+			ta.TEST_NAME,
+			ta.COMMENT,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE
+		FROM TJBA_TEST_CODE ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+	
+	<!-- 건강정보 로그 용 -->	
+	<select id="checkHealthInfoOrder" parameterType="HashMap" resultType="healthInfoVO">
+		SELECT *
+		FROM TJAA_HEALTH_INFO
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+	<!-- 건강정보 출력 순서 증가 업데이트 -->
+	<update id="updateHealthInfoOrderInc" parameterType="HashMap">
+		UPDATE TJAA_HEALTH_INFO
+		SET PRINT_ORDER= PRINT_ORDER+1
+<!-- 			EDIT_DATE = now(), -->
+<!-- 			EDIT_USER_ID = #{editUserId} -->
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</update>
+	
+	<!-- 건강정보 출력 순서 감소 업데이트 -->
+	<update id="updateHealthInfoOrderDec" parameterType="HashMap">
+		UPDATE TJAA_HEALTH_INFO
+		SET PRINT_ORDER= PRINT_ORDER-1
+<!-- 			EDIT_DATE = now(), -->
+<!-- 			EDIT_USER_ID = #{editUserId} -->
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</update>
+	
+	<!-- 언어코드에 따른 갯수 -->
+	<select id="findMaxPrintOrderByLangCode" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TJAA_HEALTH_INFO
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+	</select>
+	
+	<!-- 건강정보 등록 -->
+	<insert id="addHealthInfo" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TJAA_HEALTH_INFO
+	(
+	    CODE_LANG_TYPE,
+	    TITLE,
+	    SUB_TITLE,
+	    IMG_TITLE_THUM_NAME,
+	    IMG_TITLE_THUM_PATH,
+	    IMG_CONTENT_NAME,
+	    IMG_CONTENT_PATH,
+	    WRITER,
+	    INSPECTOR,
+	    INSPECTOR_CMT,
+	    PRINT_FLAG,
+	    PRINT_ORDER,
+	    VIEW_COUNT,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+	    DELETE_FLAG    
+	)
+	VALUES
+	(
+		#{codeLangType},
+		#{title},
+		#{subTitle},
+		#{imgTitleThumName}, 
+		#{imgTitleThumPath},
+		#{imgContentName},
+		#{imgContentPath},
+		#{writer},
+		#{inspector},
+		#{inspectorCmt},
+		#{printFlag},
+		#{printOrder},
+		0,
+		#{regUserId},
+		#{regUserId},
+		now(),
+		now(),
+		'N'
+	)
+	</insert>
+	
+	<!-- 건강정보 출처 등록 -->
+	<insert id="addHealthSource" parameterType="java.util.List">
+		INSERT INTO TJAB_HEALTH_INFO_SOURCE
+		(
+			HEALTH_INFO_SEQ,
+			SOURCE,
+			COMMENT,
+			URL,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.healthInfoSeq}, #{item.source}, #{item.comment}, #{item.url}, #{item.regUserId}, #{item.regUserId}, now(), now(), 'N')
+		</foreach>
+	</insert>
+	
+	<!-- 건강정보 검사코드 수기 등록 -->
+	<insert id="addHealthTestHardInfo" parameterType="java.util.List">
+		INSERT INTO TJBC_TEST_HARD_INFO
+		(
+		    HEALTH_INFO_SEQ,
+		    TEST_CODE,
+		    TEST_NAME,
+		    COMMENT,
+		    PROCESS_DAY,
+		    SPECIMEN,
+		    TEST_DAY,
+		    TEST_METHOD,
+		    VOLUME,
+		    REG_USER_ID,
+		    EDIT_USER_ID,
+		    REG_DATE,
+		    EDIT_DATE,
+		    DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+		(
+			#{item.healthInfoSeq},
+			#{item.testCode},
+			#{item.testName},
+			#{item.comment},
+			#{item.processDay},
+			#{item.specimen},
+			#{item.testDay},
+			#{item.testMethod},
+			#{item.volume},
+			#{item.regUserId},
+			#{item.regUserId},
+			now(),
+			now(),
+			'N'
+		)
+		</foreach>
+	</insert>
+
+	<!-- 건강정보 검사코드 수기 등록 -->
+	<insert id="addHealthTestHardInfoOne" parameterType="hashmap">
+		INSERT INTO TJBC_TEST_HARD_INFO
+		(
+		    HEALTH_INFO_SEQ,
+		    TEST_CODE,
+		    TEST_NAME,
+		    COMMENT,
+		    PROCESS_DAY,
+		    SPECIMEN,
+		    TEST_DAY,
+		    TEST_METHOD,
+		    VOLUME,
+		    REG_USER_ID,
+		    EDIT_USER_ID,
+		    REG_DATE,
+		    EDIT_DATE,
+		    DELETE_FLAG
+		)
+		VALUE
+		(
+			#{healthInfoSeq},
+			#{testCode},
+			#{testName},
+			#{comment},
+			#{processDay},
+			#{specimen},
+			#{testDay},
+			#{testMethod},
+			#{volume},
+			#{regUserId},
+			#{regUserId},
+			DATE_ADD(now(), INTERVAL #{paddingSecond} SECOND),
+			DATE_ADD(now(), INTERVAL #{paddingSecond} SECOND),
+			'N'
+		)
+	</insert>
+	
+	<!-- 건강정보 검사코드 검색 등록 -->
+	<insert id="addHealthTestSearchInfo" parameterType="java.util.List">
+		INSERT INTO TJBA_TEST_CODE
+		(
+		    HEALTH_INFO_SEQ,
+		    TEST_CODE,
+		    TEST_NAME,
+		    COMMENT,
+		    REG_USER_ID,
+		    EDIT_USER_ID,
+		    REG_DATE,
+		    EDIT_DATE,
+		    DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+		(
+			#{item.healthInfoSeq},
+			#{item.testCode},
+			#{item.testName},
+			#{item.comment},
+			#{item.regUserId},
+			#{item.regUserId},
+			now(),
+			now(),
+			'N'
+		)
+		</foreach>
+	</insert>
+	<!-- 건강정보 검사코드 검색 등록 -->
+	<insert id="addHealthTestSearchInfoOne" parameterType="hashmap">
+		INSERT INTO TJBA_TEST_CODE
+		(
+		    HEALTH_INFO_SEQ,
+		    TEST_CODE,
+		    TEST_NAME,
+		    COMMENT,
+		    REG_USER_ID,
+		    EDIT_USER_ID,
+		    REG_DATE,
+		    EDIT_DATE,
+		    DELETE_FLAG
+		)
+		VALUE
+		(
+			#{healthInfoSeq},
+			#{testCode},
+			#{testName},
+			#{comment},
+			#{regUserId},
+			#{regUserId},
+			DATE_ADD(now(), INTERVAL #{paddingSecond} SECOND),
+			DATE_ADD(now(), INTERVAL #{paddingSecond} SECOND),
+			'N'
+		)
+	</insert>
+	
+	<!-- 건강정보 수정 -->
+	<update id="editHealthInfo" parameterType="HashMap">
+		UPDATE TJAA_HEALTH_INFO
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			TITLE= #{title},
+			SUB_TITLE= #{subTitle},
+			INSPECTOR= #{inspector},
+			INSPECTOR_CMT= #{inspectorCmt},
+			WRITER= #{writer},
+			
+			IMG_CONTENT_NAME=  #{imgContentName},
+			IMG_CONTENT_PATH= #{imgContentPath},
+			IMG_TITLE_THUM_NAME= #{imgTitleThumName},
+			IMG_TITLE_THUM_PATH= #{imgTitleThumPath},
+			
+			PRINT_FLAG= #{printFlag},
+			PRINT_ORDER= #{printOrder},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 건강정보 출처 수정 -->
+	<update id="editHealthSource" parameterType="HashMap">
+		UPDATE TJAB_HEALTH_INFO_SOURCE
+		SET 
+			SOURCE=#{source},
+			COMMENT=#{comment},
+			URL=#{url},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 건강정보 수기 검사코드 수정 -->
+	<update id="editHealthHardTest" parameterType="HashMap">
+		UPDATE TJBC_TEST_HARD_INFO
+		SET 
+			TEST_CODE=#{testCode},
+			TEST_NAME=#{testName},
+			COMMENT=#{comment},
+			PROCESS_DAY=#{processDay},
+			SPECIMEN=#{specimen},
+			TEST_DAY=#{testDay},
+			TEST_METHOD=#{testMethod},
+			VOLUME=#{volume},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 건강정보 검색 검사코드 수정 -->
+	<update id="editHealthSearchTest" parameterType="HashMap">
+		UPDATE TJBA_TEST_CODE
+		SET 
+			COMMENT=#{comment},
+			TEST_NAME=#{testName},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND TEST_CODE=#{testCode}
+	</update>
+	
+	<!-- 건강정보 출처 석제 -->
+	<update id="deleteHealthSource" parameterType="HashMap">
+		UPDATE TJAB_HEALTH_INFO_SOURCE
+		SET 
+			DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE HEALTH_INFO_SEQ = #{hardInfoSeq}
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+	<!-- 건강정보 수기 검사 정보 석제 -->
+	<update id="deleteHealthHardTest" parameterType="HashMap">
+		UPDATE TJBC_TEST_HARD_INFO
+		SET 
+			DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE HEALTH_INFO_SEQ = #{hardInfoSeq}
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	<!-- 건강정보 검색 검사 정보 석제 -->
+	<update id="deleteHealthSearchTest" parameterType="HashMap">
+		UPDATE TJBA_TEST_CODE
+		SET 
+			DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE HEALTH_INFO_SEQ = #{hardInfoSeq}
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+
+	<!-- 건강정보 삭제 -->
+	<update id="deleteHealthInfo" parameterType="HashMap">
+		UPDATE TJAA_HEALTH_INFO
+		SET DELETE_FLAG = 'Y',
+			PRINT_FLAG = 'N',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 사용자 부분 -->
+	<!-- 전체 리스트 -->	
+	<select id="findAllInfoTitle" parameterType="HashMap" resultType="healthInfoTitleRO">
+		SELECT SEQ, TITLE
+		FROM TJAA_HEALTH_INFO
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_FLAG = 'Y'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		ORDER BY PRINT_ORDER ASC
+	</select>
+	
+		<!-- 원클릭 건강정보 사용자 리스트 -->
+	<select id="findUserHelthInfoList" parameterType="HashMap" resultType="healthInfoUserListRO" >
+		SELECT 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.SUB_TITLE,
+			ta.IMG_TITLE_THUM_PATH,
+			ta.EDIT_DATE,
+			ta.REG_DATE
+		FROM TJAA_HEALTH_INFO ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.PRINT_FLAG = 'Y'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND (
+					ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				OR
+					ta.SUB_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+			)
+		</if>
+		ORDER BY PRINT_ORDER
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 원클릭 건강정보 사용자 리스트 카운트 -->
+	<select id="countUserHelthInfoList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TJAA_HEALTH_INFO ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.PRINT_FLAG = 'Y'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND (
+					ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				OR
+					ta.SUB_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+			)
+		</if>
+	</select>
+	
+	<!-- 건강정보 기본 정보 사용자용 상세 조회용 -->
+	<select id="findUserHealthInfoViewBySeq" parameterType="hashmap" resultType="healthInfoUserViewRO">
+		SELECT ta.SEQ, 
+			ta.TITLE, 
+			ta.IMG_CONTENT_PATH,
+			ta.WRITER,
+			ta.PRINT_ORDER,
+			ta.INSPECTOR, 
+			ta.INSPECTOR_CMT
+		FROM TJAA_HEALTH_INFO ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND ta.PRINT_FLAG = 'Y'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+		<!-- 건강정보 기본 정보 사용자용 섬네일 조회용 -->
+	<select id="findUserHealthInfoThumBySeq" parameterType="hashmap" resultType="String">
+		SELECT IMG_TITLE_THUM_PATH
+		FROM TJAA_HEALTH_INFO ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND ta.PRINT_FLAG = 'Y'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+	</select>
+	
+		<!-- 건강정보 사용자용 검사코드 리스트 -->
+	<select id="findUserHealthTestViewByHealthSeq" parameterType="hashmap" resultType="healthInfoUserTestHardInfoPO">
+		(
+			SELECT ta.SEQ, 
+				ta.TEST_CODE, 
+				ta.TEST_NAME, 
+				ta.COMMENT, 
+				'' as SPECIMEN,
+				'' as VOLUME,
+				'' as TEST_METHOD,
+				'' as TEST_DAY,
+				'' as PROCESS_DAY,
+				'N' as HARD_FLAG,
+				ta.REG_DATE
+			FROM TJBA_TEST_CODE ta
+			WHERE ta.DELETE_FLAG = 'N'
+			AND ta.HEALTH_INFO_SEQ = #{seq}
+		)
+		UNION ALL
+		(
+			SELECT tc.SEQ,
+				tc.TEST_CODE,
+				tc.TEST_NAME, 
+				tc.COMMENT,
+				tc.SPECIMEN,
+				tc.VOLUME,
+				tc.TEST_METHOD,
+				tc.TEST_DAY,
+				tc.PROCESS_DAY,
+				'Y' as HARD_FLAG,
+				tc.REG_DATE
+			FROM TJBC_TEST_HARD_INFO tc
+			WHERE tc.DELETE_FLAG = 'N'
+			AND tc.HEALTH_INFO_SEQ = #{seq}
+		)
+	</select>
+	
+	<!-- 건강정보 사용자 출처 정보 상세 조회용 -->
+	<select id="findUserHealthSourceViewByHealthSeq" parameterType="hashmap" resultType="healthInfoUserSourcePO">
+		SELECT  
+			SOURCE,
+			COMMENT, 
+			URL
+		FROM TJAB_HEALTH_INFO_SOURCE
+		WHERE DELETE_FLAG = 'N'
+		AND HEALTH_INFO_SEQ = #{seq}
+	</select>
+	
+		<!-- 조회수 업 -->
+	<update id="updateUserHealthInfoViewCount" parameterType="HashMap">
+		UPDATE TJAA_HEALTH_INFO ta
+		SET ta.VIEW_COUNT = ta.VIEW_COUNT+1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</update>
+	
+	<!-- 이전 다음 확인용 -->
+	<select id="findUserHealthInfoNextPreBySeq" parameterType="HashMap" resultType="healthInfoUserNextPreRO">
+		(
+			SELECT SEQ, 'next' as TYPE
+			FROM TJAA_HEALTH_INFO
+			WHERE #{printOrder} > PRINT_ORDER
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND PRINT_FLAG = 'Y'
+			ORDER BY PRINT_ORDER DESC
+			LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT SEQ, 'pre' as TYPE
+			FROM TJAA_HEALTH_INFO
+			WHERE PRINT_ORDER > #{printOrder}
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND PRINT_FLAG = 'Y'
+			ORDER BY PRINT_ORDER ASC
+			LIMIT 1
+		)
+	</select>
+
+</mapper>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.MainLogoMapper">
+
+
+	<!-- 로고 로그용 조회 -->
+	<select id="findLogoBySeq" parameterType="HashMap" resultType="mainLogoVO">
+		SELECT *
+		FROM TGBA_MAIN_LOGO
+		WHERE SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 로고 관리 리스트 -->
+	<select id="findLogoList" parameterType="HashMap" resultType="mainLogoListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.NAME,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'logo'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LOGO_TYPE
+			) as CODE_LOGO_NAME,
+			ta.CODE_LOGO_TYPE,
+			ta.START_DATE,
+			ta.END_DATE,
+			ta.EDIT_DATE 
+		FROM TGBA_MAIN_LOGO ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 로고 관리 리스트 카운트 -->
+	<select id="countLogoList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TGBA_MAIN_LOGO ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+	
+	<!-- 로고 상세 조회 -->
+	<select id="findLogoViewBySeq" parameterType="hashmap" resultType="mainLogoViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.NAME,
+			ta.URL,
+			ta.FILE_PATH,
+			ta.START_DATE,
+			ta.END_DATE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'logo'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LOGO_TYPE
+			) as CODE_LOGO_NAME,
+			ta.CODE_LOGO_TYPE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TGBA_MAIN_LOGO ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+
+	<!-- 기간 확인  -->
+	<select id="checkDate" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TGBA_MAIN_LOGO
+		WHERE DELETE_FLAG = 'N'
+		AND END_DATE IS NOT NULL
+		AND END_DATE  >= #{startDate}
+		AND START_DATE <![CDATA[<=]]> #{endDate}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_LOGO_TYPE = #{codeLogoType}
+	</select>
+
+	<!-- 기간 확인2  -->
+	<select id="checkEditDate" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TGBA_MAIN_LOGO
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ <![CDATA[<>]]> #{seq}
+		AND END_DATE IS NOT NULL
+		AND END_DATE  >= #{startDate}
+		AND START_DATE <![CDATA[<=]]> #{endDate}
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_LOGO_TYPE = #{codeLogoType}
+	</select>
+	
+	
+ 	<!-- 로고 등록 --> 
+	<insert id="addLogo"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TGBA_MAIN_LOGO
+		(
+			CODE_LANG_TYPE,
+			CODE_LOGO_TYPE,
+			NAME,
+			URL,
+			START_DATE,
+			END_DATE,
+			FILE_NAME,
+			FILE_PATH,
+			FILE_SIZE,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{codeLogoType},
+			#{name},
+			#{url},
+			#{startDate},
+			#{endDate},
+			#{fileName},
+			#{filePath},
+			#{fileSize},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	
+	
+	<!-- 로고 수정 --> 
+	<update id="editLogo" parameterType="HashMap">
+		UPDATE TGBA_MAIN_LOGO
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			CODE_LOGO_TYPE= #{codeLogoType},
+			NAME= #{name},
+			URL= #{url},
+			START_DATE= #{startDate},
+			END_DATE= #{endDate},
+			FILE_NAME= #{fileName},
+			FILE_PATH= #{filePath},
+			FILE_SIZE= #{fileSize},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	<!-- 로고  삭제 -->
+	<update id="deleteLogo" parameterType="HashMap">
+		UPDATE TGBA_MAIN_LOGO
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 사용자용  -->
+	<select id="findMainUserLogo" parameterType="HashMap" resultType="mainLogoUserRO">
+		SELECT FILE_PATH, NAME, URL
+		FROM TGBA_MAIN_LOGO
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_LOGO_TYPE = #{codeLogoType}
+		AND now() >= START_DATE 
+		AND END_DATE >= now()
+	</select>
+
+</mapper>

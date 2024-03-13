@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.NetworkMapper">
+
+
+	<!-- 전국 네트워크 담당자 로그용 단일 조회 -->
+	<select id="findNetworkStaffsBySeq" parameterType="HashMap" resultType="networkStaffsVO">
+		SELECT *
+		FROM THAA_NETWORK_STAFFS
+		WHERE SEQ = #{seq}
+	</select>
+	<select id="findNetworkStaffsInfoByStaffsSeq" parameterType="HashMap" resultType="networkStaffsInfoVO">
+		SELECT *
+		FROM THAB_NETWORK_STAFFS_INFO
+		WHERE NETWORK_STAFFS_SEQ = #{seq}
+	</select>
+	<select id="findMappingByStaffsSeq" parameterType="HashMap" resultType="networkMappingVO">
+		SELECT *
+		FROM THBA_MAPPING
+		WHERE NETWORK_STAFFS_SEQ = #{seq}
+	</select>
+	
+	
+	<!--  전국 네트워크 관리 리스트 -->
+	<select id="findNetworkList" parameterType="HashMap" resultType="networkListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ, 
+			ta.CODE_NETWORK_TYPE, 
+			ta.PRINT_ORDER, 
+			tc.NAME, 
+			tc.DEPARTMENT, 
+			tc.COMPANY, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'networkLoc'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_NETWORK_TYPE
+			) as CODE_NETWORK_NAME,
+			ta.CODE_NETWORK_TYPE,
+			tc.EDIT_DATE 
+		FROM THBA_MAPPING ta,
+			THAA_NETWORK_STAFFS tb,
+			THAB_NETWORK_STAFFS_INFO tc,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.NETWORK_STAFFS_SEQ = tb.SEQ
+		AND tb.SEQ = tc.NETWORK_STAFFS_SEQ
+		AND ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+		AND tc.DELETE_FLAG = 'N'
+		AND tc.CODE_LANG_TYPE = 'ko'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND tc.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('company')">
+					AND tc.COMPANY LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							tc.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							tc.COMPANY LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY ta.CODE_NETWORK_TYPE DESC, ta.PRINT_ORDER ASC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 전국 네트워크 관리 리스트 카운트 -->
+	<select id="countNetworkList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM THBA_MAPPING ta,
+			THAA_NETWORK_STAFFS tb,
+			THAB_NETWORK_STAFFS_INFO tc
+		WHERE ta.NETWORK_STAFFS_SEQ = tb.SEQ
+		AND tb.SEQ = tc.NETWORK_STAFFS_SEQ
+		AND ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+		AND tc.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND tc.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('company')">
+					AND tc.COMPANY LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							tc.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							tc.COMPANY LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 전국 네트워크 기본 정보 상세 조회용 -->
+	<select id="findNetworkViewByMappingSeq" parameterType="hashmap" resultType="networkViewRO">
+		SELECT 
+			tb.SEQ, 
+			tb.EMAIL,
+			tb.DIRECTOR_FLAG,
+			tb.IMAGE_PATH,
+			tb.EDIT_DATE, 
+			tb.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = tb.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM THBA_MAPPING ta,
+			THAA_NETWORK_STAFFS tb
+		WHERE ta.NETWORK_STAFFS_SEQ = tb.SEQ
+		AND ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 전국네트워크 지역 정보 -->
+	<select id="findNetworkLocViewByStaffsSeq" parameterType="hashmap" resultType="networkMappingRO">
+		SELECT 
+			ta.SEQ,
+			ta.CODE_NETWORK_TYPE, 
+			ta.PRINT_ORDER,
+						(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'networkLoc'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_NETWORK_TYPE
+			) as CODE_NETWORK_NAME,
+			ta.CODE_NETWORK_TYPE,
+			ta.EDIT_DATE, 
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM THBA_MAPPING ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.NETWORK_STAFFS_SEQ = #{seq}
+	</select>
+	
+	<!-- 전국 네트워크 사용자 정보 상세 조회용 -->
+	<select id="findNetworkStaffInfoViewByStaffsSeq" parameterType="hashmap" resultType="networkStaffsInfoRO">
+		SELECT 
+			ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.NAME, 
+			ta.DEPARTMENT, 
+			ta.ADDRESS, 
+			ta.COMPANY, 
+			ta.FAX, 
+			ta.MOBILE_PHONE, 
+			ta.EDIT_DATE, 
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM THAB_NETWORK_STAFFS_INFO ta
+		WHERE ta.NETWORK_STAFFS_SEQ = #{seq}
+		AND ta.DELETE_FLAG = 'N'
+	</select>
+	
+	
+	<!-- 지역별 출력 갯수 -->
+	<select id="getLocPrintOrder" parameterType="HashMap" resultType="networkLocCountRO">
+		SELECT ta.SLAVE_CODE, ta.SLAVE_CODE_NAME, count(1) cnt
+		FROM TABB_CODE_SLAVE ta
+		    LEFT OUTER JOIN THBA_MAPPING tb
+		    ON ta.SLAVE_CODE = tb.CODE_NETWORK_TYPE
+		WHERE ta.MASTER_CODE = 'networkLoc'
+		GROUP BY ta.SLAVE_CODE, ta.SLAVE_CODE_NAME
+		ORDER BY 2 ASC
+	</select>
+	
+		
+	<!-- 전국 네트워크 로그 용 -->	
+	<select id="checkNetworkOrder" parameterType="HashMap" resultType="networkMappingVO">
+		SELECT *
+		FROM THBA_MAPPING
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_NETWORK_TYPE = #{codeNetworkType}
+	</select>
+	
+	<!-- 전국 네트워크 출력 순서 증가 업데이트 -->
+	<update id="updateNetworkOrderInc" parameterType="HashMap">
+		UPDATE THBA_MAPPING
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_NETWORK_TYPE = #{codeNetworkType}
+	</update>
+	
+	<!-- 전국 네트워크 출력 순서 감소 업데이트 -->
+	<update id="updateNetworkOrderDec" parameterType="HashMap">
+		UPDATE THBA_MAPPING
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND PRINT_ORDER >= #{printOrder}
+		AND CODE_NETWORK_TYPE = #{codeNetworkType}
+	</update>
+	
+
+	
+	<!-- 전국 네트워크 사용자 마스터 등록 -->
+	<insert id="addNetworkStaffs" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO THAA_NETWORK_STAFFS
+		(
+			NAME,
+			DIRECTOR_FLAG,
+			EMAIL,
+			IMAGE_PATH,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		(
+			#{name},
+			#{directorFlag},
+			#{email},
+			#{imagePath}, 
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	<!-- 전국 네트워크 사용자 언어별 정보 등록 -->
+	<insert id="addNetworkStaffsInfos" parameterType="java.util.List">
+		INSERT INTO THAB_NETWORK_STAFFS_INFO
+		(
+			NETWORK_STAFFS_SEQ,
+			CODE_LANG_TYPE,
+			NAME,
+			COMPANY,
+			DEPARTMENT,
+			MOBILE_PHONE,
+			FAX,
+			ADDRESS,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.networkStaffsSeq}, 
+				#{item.codeLangType}, 
+				#{item.name}, 
+				#{item.company}, 
+				#{item.department}, 
+				#{item.mobilePhone}, 
+				#{item.fax}, 
+				#{item.address}, 
+				#{item.regUserId}, 
+				#{item.regUserId}, 
+				now(), 
+				now(), 
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 전국 네트워크 사용자 지역 맵핑 -->
+	<insert id="addNetworkMapping" parameterType="java.util.List">
+		INSERT INTO THBA_MAPPING
+		(
+			NETWORK_STAFFS_SEQ,
+			CODE_NETWORK_TYPE,
+			PRINT_ORDER,
+			EDIT_USER_ID,
+			REG_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.networkStaffsSeq}, 
+				#{item.codeNetworkType}, 
+				#{item.printOrder}, 
+				#{item.regUserId}, 
+				#{item.regUserId}, 
+				now(), 
+				now(), 
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	
+	
+	<!-- 전국 네트워크 담당자 수정 -->
+	<update id="editNetworkStaffs" parameterType="HashMap">
+		UPDATE THAA_NETWORK_STAFFS
+		SET 
+			DIRECTOR_FLAG= #{directorFlag},
+			EMAIL= #{email},
+			IMAGE_PATH= #{imagePath},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 전국 네트워크 담당자 언어별 정보 수정 -->
+	<update id="editNetworkStaffsInfo" parameterType="HashMap">
+		UPDATE THAB_NETWORK_STAFFS_INFO
+		SET 
+			NAME= #{name},
+			COMPANY= #{company},
+			DEPARTMENT= #{department},
+			MOBILE_PHONE= #{mobilePhone},
+			FAX= #{fax},
+			ADDRESS= #{address},
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+		AND NETWORK_STAFFS_SEQ = #{networkStaffsSeq}
+		AND CODE_LANG_TYPE = #{codeLangType}
+	</update>
+	
+	
+	
+	
+
+	<!-- 전국 네트워크 삭제 -->
+	<update id="deleteNetworkStaffs" parameterType="HashMap">
+		UPDATE THAA_NETWORK_STAFFS
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+
+	<!-- 전국 네트워크 맵핑 삭제 -->
+	<update id="deleteNetworkMapping" parameterType="HashMap">
+		UPDATE THBA_MAPPING
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 삭제시 출력 순서 조정 시킬 지역 정보들 조회 -->
+	<select id="findDeleteNetworkStaffsMappingInfo" parameterType="HashMap" resultType="networkMappingVO">
+	SELECT 	CODE_NETWORK_TYPE, PRINT_ORDER
+	FROM THBA_MAPPING
+	WHERE DELETE_FLAG = 'N'
+	AND NETWORK_STAFFS_SEQ = #{seq}
+	
+	</select>
+	
+	
+	
+	
+	
+	<!-- 사용자용 -->
+	
+	<!--  전국 네트워크 관리 리스트 -->
+	<select id="findUserNetworkList" parameterType="HashMap" resultType="businessClinicalNetworkListRO" >
+		SELECT  
+			tb.SEQ, 
+			tb.DIRECTOR_FLAG,
+			tb.EMAIL,
+			tb.IMAGE_PATH,
+			tc.NAME, 
+			tc.COMPANY, 
+			tc.DEPARTMENT,
+			tc.MOBILE_PHONE,
+			tc.FAX,
+			tc.ADDRESS,
+			ta.CODE_NETWORK_TYPE
+		FROM THBA_MAPPING ta,
+			THAA_NETWORK_STAFFS tb,
+			THAB_NETWORK_STAFFS_INFO tc
+		WHERE ta.NETWORK_STAFFS_SEQ = tb.SEQ
+		AND tb.SEQ = tc.NETWORK_STAFFS_SEQ
+		AND ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+		AND tc.DELETE_FLAG = 'N'
+		AND tc.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeNetworkType !=null and ! codeNetworkType.equals('')">
+		AND ta.CODE_NETWORK_TYPE = #{codeNetworkType}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND (
+					tc.NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				OR
+					tc.COMPANY LIKE CONCAT('%', #{searchKeyword}, '%')
+			)
+		</if>
+		ORDER BY ta.PRINT_ORDER ASC
+	
+	</select>
+
+</mapper>

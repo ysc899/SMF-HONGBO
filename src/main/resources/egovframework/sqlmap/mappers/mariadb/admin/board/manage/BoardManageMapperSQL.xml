@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.BoardManageMapper">
+
+
+	<!-- 통합 게시판 로그용 -->
+	<select id="findBoardManageMasterBySeq" parameterType="HashMap" resultType="boardDefaultMasterVO">
+		SELECT *
+		FROM TECA_BOARD_DEFAULT_MASTER
+		WHERE SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 통합 게시판 검색 리스트 -->
+	<select id="findBoardManageList" parameterType="HashMap" resultType="boardManageListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.MASTER_NAME,
+			
+			(SELECT COUNT(1) from TECB_BOARD_DEFAULT_SLAVE WHERE BOARD_DEFAULT_MASTER_SEQ = ta.SEQ AND DELETE_FLAG = 'N') AS CONTENT_COUNT,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+						
+			ta.EDIT_DATE 
+		FROM TECA_BOARD_DEFAULT_MASTER ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('desc')">
+					AND ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 통합 게시판 검색 리스트 카운트 -->
+	<select id="countBoardManageList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TECA_BOARD_DEFAULT_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('name')">
+					AND ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('desc')">
+					AND ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.MASTER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.MASTER_DESC LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 통합 게시판 정보 상세 조회용 -->
+	<select id="findBoardManageViewBySeq" parameterType="hashmap" resultType="boardManageViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.MASTER_NAME,
+			ta.MASTER_DESC,
+			(SELECT COUNT(1) FROM TECB_BOARD_DEFAULT_SLAVE WHERE BOARD_DEFAULT_MASTER_SEQ = ta.SEQ AND DELETE_FLAG = 'N') AS CONTENT_COUNT,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			ta.OPT_THUM_FLAG,
+			ta.OPT_FILE_FLAG,
+			ta.OPT_NOTI_FLAG,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_USER_ID,
+			ta.EDIT_DATE 
+		FROM TECA_BOARD_DEFAULT_MASTER ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 통합 FAQ 등록 -->
+	<insert id="addBoardManage"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TECA_BOARD_DEFAULT_MASTER
+		(
+		 	CODE_LANG_TYPE,
+			MASTER_NAME,
+			MASTER_DESC,
+			OPT_THUM_FLAG,
+			OPT_FILE_FLAG,
+			OPT_NOTI_FLAG,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{masterName},
+			#{masterDesc},
+			#{optThumFlag},
+			#{optFileFlag},
+			#{optNotiFlag},
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	<!-- 통합 게시판 수정 -->
+	<update id="editBoardManage" parameterType="HashMap">
+		UPDATE TECA_BOARD_DEFAULT_MASTER
+		SET
+			CODE_LANG_TYPE= #{codeLangType},
+			MASTER_NAME= #{masterName},
+			MASTER_DESC= #{masterDesc},
+			OPT_THUM_FLAG= #{optThumFlag},
+			OPT_FILE_FLAG= #{optFileFlag},
+			OPT_NOTI_FLAG= #{optNotiFlag},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 통합 게시판  삭제 -->
+	<update id="deleteBoardManage" parameterType="HashMap">
+		UPDATE TECA_BOARD_DEFAULT_MASTER
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+
+</mapper>

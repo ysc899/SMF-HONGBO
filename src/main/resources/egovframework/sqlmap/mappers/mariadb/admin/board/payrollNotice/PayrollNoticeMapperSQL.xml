@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.PayrollNoticeMapper">
+
+
+	<!-- 급여 고시 단일 조회 -->
+	<select id="findPayrollNoticeBySeq" parameterType="HashMap" resultType="payrollNoticeVO">
+		SELECT *
+		FROM TEAA_PAYROLL_NOTICE
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 급여 고시 파일 로그용 조회 -->
+	<select id="findPayrollNoticeFileByNoticeSeq" parameterType="HashMap" resultType="payrollNoticeFileVO">
+		SELECT *
+		FROM TEAB_PAYROLL_NOTICE_FILE
+		WHERE PAYROLL_NOTICE_SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 급여 고시 관리 리스트 -->
+	<select id="findPayrollNoticeList" parameterType="HashMap" resultType="payrollNoticeListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE,
+			ta.PAYROLL_NOTICE_NUMBER, 
+			ta.HIT_CNT, 
+			ta.PAYROLL_NOTICE_FLAG, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+			) as CODE_CENTER_NAME,
+			ta.CODE_CENTER_TYPE,
+			
+			ta.EDIT_DATE 
+		FROM TEAA_PAYROLL_NOTICE ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 급여 고시 관리 리스트 카운트 -->
+	<select id="countPayrollNoticeList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEAA_PAYROLL_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 급여 고시 정보 상세 조회용 -->
+	<select id="findPayrollNoticeViewBySeq" parameterType="hashmap" resultType="payrollNoticeViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.CODE_CENTER_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+			) as CODE_CENTER_NAME,
+			ta.PAYROLL_NOTICE_NUMBER, 
+			ta.TITLE,
+			ta.CONTENT,
+			ta.PAYROLL_NOTICE_FLAG,
+			
+			ta.HIT_CNT,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE
+		FROM TEAA_PAYROLL_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 급여 고시 첨부파일 상세 조회용 -->
+	<select id="findPayrollNoticeFileViewByNoticeSeq" parameterType="hashmap" resultType="payrollNoticeFileViewRO">
+		SELECT 
+			SEQ,
+			DOWN_CNT,
+			FILE_NAME,
+			FILE_SIZE
+		FROM TEAB_PAYROLL_NOTICE_FILE
+		WHERE DELETE_FLAG = 'N'
+		AND PAYROLL_NOTICE_SEQ = #{payrollSeq}
+	</select>
+	
+	<!-- 급여 고시 등록 -->
+	<insert id="addPayrollNotice"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEAA_PAYROLL_NOTICE
+		(
+		 	CODE_LANG_TYPE,
+			CODE_CENTER_TYPE,
+			PAYROLL_NOTICE_NUMBER,
+		 	TITLE,
+		 	CONTENT,
+		 	PAYROLL_NOTICE_FLAG,
+		 	HIT_CNT,
+		 	EDIT_USER_ID,
+		 	REG_USER_ID,
+		 	EDIT_DATE,
+		 	REG_DATE,
+		 	DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			'seoul',
+			#{payrollNoticeNumber},
+			#{title},
+			#{content},
+			#{payrollNoticeFlag},
+			0,
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	<!-- 급여 고시 등록 -->
+	<insert id="addMigPayrollNotice"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEAA_PAYROLL_NOTICE
+		(
+		 	CODE_LANG_TYPE,
+			CODE_CENTER_TYPE,
+			PAYROLL_NOTICE_NUMBER,
+		 	TITLE,
+		 	CONTENT,
+		 	PAYROLL_NOTICE_FLAG,
+		 	HIT_CNT,
+		 	EDIT_USER_ID,
+		 	REG_USER_ID,
+		 	EDIT_DATE,
+		 	REG_DATE,
+		 	DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			'seoul',
+			#{payrollNoticeNumber},
+			#{title},
+			#{content},
+			#{payrollNoticeFlag},
+			0,
+			#{regUserId},
+			#{regUserId},
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			STR_TO_DATE(#{regDate}, '%Y%m%d'),
+			'N'
+		)
+	</insert>
+	
+	<!-- 급여 고시 파일 등록 -->
+	<insert id="addMigPayrollNoticeFile"  parameterType="HashMap">
+		INSERT INTO TEAB_PAYROLL_NOTICE_FILE
+		(
+			PAYROLL_NOTICE_SEQ,
+			FILE_NAME,
+			FILE_PATH,
+			FILE_SIZE,
+			DOWN_CNT,
+			EDIT_USER_ID,
+			REG_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+			(
+				#{payrollNoticeSeq},
+				#{fileName},
+				#{filePath},
+				#{fileSize},
+				0,
+				#{regUserId},
+				#{regUserId},
+				STR_TO_DATE(#{regDate}, '%Y%m%d'),
+				STR_TO_DATE(#{regDate}, '%Y%m%d'),
+				'N'
+			)
+	</insert>
+	
+	<!-- 급여 고시 파일 등록 -->
+	<insert id="addPayrollNoticeFile"  parameterType="java.util.List">
+		INSERT INTO TEAB_PAYROLL_NOTICE_FILE
+		(
+			PAYROLL_NOTICE_SEQ,
+			FILE_NAME,
+			FILE_PATH,
+			FILE_SIZE,
+			DOWN_CNT,
+			EDIT_USER_ID,
+			REG_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.payrollNoticeSeq},
+				#{item.fileName},
+				#{item.filePath},
+				#{item.fileSize},
+				0,
+				#{item.regUserId},
+				#{item.regUserId},
+				now(),
+				now(),
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 파일 다운로드 경로 -->
+	<select id="findPayrollNoticeFile" parameterType="HashMap" resultType="payrollNoticeFileVO">
+		SELECT tb.*
+		FROM TEAA_PAYROLL_NOTICE ta,
+			TEAB_PAYROLL_NOTICE_FILE tb
+		WHERE ta.SEQ = tb.PAYROLL_NOTICE_SEQ
+		AND ta.SEQ = #{payrollNoticeSeq}
+		AND tb.SEQ = #{payrollNoticeFileSeq}
+		AND ta.DELETE_FLAG = 'N'
+		AND tb.DELETE_FLAG = 'N'
+	</select>
+	
+	<!-- 급여 고시 수정 -->
+	<update id="editPayrollNotice" parameterType="HashMap">
+		UPDATE TEAA_PAYROLL_NOTICE
+		SET 
+			CODE_CENTER_TYPE= 'seoul',
+			CODE_LANG_TYPE= #{codeLang},
+			TITLE= #{title},
+			PAYROLL_NOTICE_NUMBER= #{payrollNoticeNumber},
+			CONTENT= #{content},
+			PAYROLL_NOTICE_FLAG= #{payrollNoticeFlag},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	
+	</update>
+	
+	<!-- 급여 고시  삭제 -->
+	<update id="deletePayrollNotice" parameterType="HashMap">
+		UPDATE TEAA_PAYROLL_NOTICE
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 급여 고시 파일들 삭제 -->
+	<update id="deletePayrollNoticeFiles" parameterType="HashMap">
+		UPDATE TEAB_PAYROLL_NOTICE_FILE
+		SET 
+			DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE PAYROLL_NOTICE_SEQ = #{payrollNoticeSeq}
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+	
+	<!-- 사용자용 리스트 -->
+	<!-- 급여 고시 사용자 리스트 -->
+	<select id="findUserPayrollNoticeList" parameterType="HashMap" resultType="payrollListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.PAYROLL_NOTICE_NUMBER,
+			ta.HIT_CNT, 
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_CENTER_NAME,
+			(	
+				SELECT COUNT(1)
+				FROM TEAB_PAYROLL_NOTICE_FILE
+				WHERE DELETE_FLAG = 'N'
+				AND PAYROLL_NOTICE_SEQ = ta.SEQ
+			) as FILE_CNT,
+			ta.EDIT_DATE 
+		FROM TEAA_PAYROLL_NOTICE ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeCenterType !=null and !codeCenterType.equals('')">
+			AND ta.CODE_CENTER_TYPE = #{codeCenterType}
+		</if>
+		
+		<if test="searchKeyword !=null and !searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 급여 고시 관리 리스트 카운트 -->
+	<select id="countUserPayrollNoticeList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEAA_PAYROLL_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeCenterType !=null and !codeCenterType.equals('')">
+			AND ta.CODE_CENTER_TYPE = #{codeCenterType}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 급여 고시 공지 리스트 -->
+	<select id="getUserPayrollNoticeList" parameterType="HashMap" resultType="payrollListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.PAYROLL_NOTICE_NUMBER,
+			ta.HIT_CNT, 
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_CENTER_NAME,
+			(	
+				SELECT COUNT(1)
+				FROM TEAB_PAYROLL_NOTICE_FILE
+				WHERE DELETE_FLAG = 'N'
+				AND PAYROLL_NOTICE_SEQ = ta.SEQ
+			) as FILE_CNT,
+			ta.EDIT_DATE 
+		FROM TEAA_PAYROLL_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.PAYROLL_NOTICE_FLAG = 'Y'
+		ORDER BY REG_DATE DESC
+	
+	</select>
+	
+	
+	<!-- 급여 고시 정보 상세 조회용 -->
+	<select id="findUserPayrollNoticeViewBySeq" parameterType="hashmap" resultType="payrollViewRO">
+		SELECT 
+			ta.SEQ,
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'center'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CENTER_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_CENTER_NAME,
+		
+			ta.TITLE,
+			ta.PAYROLL_NOTICE_NUMBER,
+			ta.CONTENT,
+			
+			ta.HIT_CNT,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE
+		FROM TEAA_PAYROLL_NOTICE ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.SEQ = #{seq}
+	</select>
+	
+		<!-- 조회수 업 -->
+	<update id="updatePayrollNoticeHit" parameterType="HashMap">
+		UPDATE TEAA_PAYROLL_NOTICE ta
+		SET ta.HIT_CNT = ta.HIT_CNT+1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</update>
+	
+	<!-- 이전 다음 확인용 -->
+	<select id="findPayrollNoticeNextPreBySeq" parameterType="HashMap" resultType="payrollViewNextPreRO">
+		(
+			SELECT SEQ, TITLE, 'pre' as TYPE
+			FROM TEAA_PAYROLL_NOTICE
+			WHERE #{seq} > SEQ
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND DELETE_FLAG = 'N'
+			ORDER BY SEQ DESC
+			LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT SEQ, TITLE, 'next' as TYPE
+			FROM TEAA_PAYROLL_NOTICE
+			WHERE SEQ > #{seq}
+			AND CODE_LANG_TYPE = #{codeLangType}
+			AND DELETE_FLAG = 'N'
+			ORDER BY SEQ ASC
+			LIMIT 1
+		)
+	</select>
+	
+	<!-- 파일 다운로드 업 -->
+	<update id="updatePayrollNoticeFileHit" parameterType="HashMap">
+		UPDATE TEAB_PAYROLL_NOTICE_FILE ta
+		SET ta.DOWN_CNT = ta.DOWN_CNT +1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{payrollNoticeFileSeq}
+		AND ta.PAYROLL_NOTICE_SEQ = #{payrollNoticeSeq}
+	</update>
+
+</mapper>

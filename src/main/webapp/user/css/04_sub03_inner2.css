@@ -1,0 +1,265 @@
+/*03_sub02 css*/
+
+/*banner_bg area*/
+.banner_box{
+  position: absolute;
+  height: 220px;
+  overflow: hidden;
+      min-width:1280px;
+  
+  width: 100%;
+/*   top: 150px; */
+  top: 120px;
+  z-index: -9;
+}
+
+.banner_bg{
+  position:absolute;
+  top:0;
+  width:100%;
+  height:220px;
+  background:url(../img/sub/content_bg7.png) no-repeat 0 0;
+  background-size:cover;
+  z-index: -10;
+  transition: all 1.7s ease;
+  transform: scale(1.1) rotate(0deg);
+}
+
+.img_area{
+  position:relative;
+  width:1920px;
+  left:-325px;
+}
+
+.img_area img{
+  margin-top:20px;
+  /* margin-bottom:100px; */
+}
+
+/*container*/
+
+#container{
+}
+
+#container .sub_menu{
+  z-index: 2;
+}
+
+#container #sub_title2{
+  position: relative;
+}
+
+#container #sub_title2 img{
+  position: absolute;
+  top:85px;
+  right:0;
+  cursor:pointer;
+}
+
+/*sub_story*/
+
+.sub_story{
+border-top:1px solid #999;
+margin-bottom:50px;
+/* position: relative;
+top:-20px;
+opacity: 0; */
+}
+
+.sub_story #oneclick_paper{
+  margin-top:50px;
+}
+
+.sub_story .oneclick_table{
+  margin-top:50px;
+}
+
+.sub_story .oneclick_table > p{
+  font-size: 21px;
+  font-weight: 600;
+  background: url(../img/sub/red_bar2.png) no-repeat 0 3px;
+  padding-left: 10px;
+  text-align: left;
+  color: #b51927;
+}
+
+.sub_story .oneclick_table table{
+  margin-top:20px;
+  width:100%;
+}
+.sub_story .oneclick_table table tr th{
+  font-size:16px;
+  font-weight:600;
+  border-top:2px solid #333;
+  border-left:1px solid #ccc;
+  border-bottom:1px solid #333;
+  height:50px;
+  color:#333;
+}
+
+.sub_story .oneclick_table table tr th:nth-child(1){
+  border-left:none;
+}
+
+.sub_story .oneclick_table table tr td{
+  font-size:15px;
+  border:1px solid #ccc;
+  height:20px;
+  color:#777;
+  line-height: 1.2em;
+  padding:15px;
+}
+
+.sub_story .oneclick_table table tr td p{
+
+}
+
+.sub_story .oneclick_table table tr td:nth-child(1){
+  border-left:none;
+}
+
+.sub_story .oneclick_table table tr td:last-child{
+  border-right:none;
+}
+
+.sub_story .oneclick_info{
+  margin-top:50px;
+  border:2px solid #b51927;
+  border-radius: 10px 0 10px 0;
+  /* height:70px; */
+  text-align: center;
+  position: relative;
+}
+
+.sub_story .oneclick_info table{
+  overflow:hidden;
+  display: inline-block;
+  padding:50px 0;
+}
+
+.sub_story .oneclick_info table tr th{
+  font-size:15px;
+  font-weight:600;
+  width:110px;
+  color:#bc1225;
+  padding-left:15px;
+}
+
+.sub_story .oneclick_info table tr th img{
+  margin-left:15px;
+  vertical-align: -0.5px;
+}
+
+.sub_story .oneclick_info table tr td{
+  font-size:15px;
+  padding-left:15px;
+  color:#777;
+  text-align: left;
+}
+
+.sub_story .oneclick_info table tr td ul{
+}
+
+.sub_story .oneclick_info table tr td ul li{
+  margin:5px 0;
+  background:url(../img/oneclick/nemo_ico.png) no-repeat 0 1px;
+  padding-left:20px;
+  max-width: 350px;
+}
+
+.sub_story .oneclick_info table tr td ul li span{
+  font-size:13px;
+}
+
+
+
+#container .oneclick_page{
+  margin-top:50px;
+}
+
+#container .oneclick_page ul{
+  display:inline-block;
+  overflow:hidden;
+}
+
+#container .oneclick_page ul li{
+  width:110px;
+  float:left;
+  margin-left:20px;
+  background:#f9f9f9;
+  border:1px solid #333;
+  border-radius: 4px 0 4px 0;
+  padding:10px 0;
+  cursor:pointer;
+}
+
+#container .oneclick_page ul li.left{
+  background:url(../img/oneclick/arrow_left.png) no-repeat 15px 14px; background-color:#f9f9f9;
+}
+
+#container .oneclick_page ul li.right{
+  background:url(../img/oneclick/arrow_right.png) no-repeat 80px 14px; background-color:#f9f9f9;
+}
+
+#container .oneclick_page ul li span{
+  color:#333;
+  font-size:15px;
+}
+
+#container .oneclick_page ul li.left > span{
+  margin-left:30px;
+}
+
+#container .oneclick_page ul li.right > span{
+  margin-right:30px;
+}
+
+.gray_bg2{
+  width: 100%;
+  position: absolute;
+  bottom:5.95%;
+  left: 0;
+  z-index: -10;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-content{
+  display: none;
+}
+
+.tab-content.current{
+  display: inherit;
+}
+
+/*white_bg*/
+
+.white_bg{
+  width:100%;
+  position:absolute;
+  top:410px;
+  border-top:1px solid #ccc;
+}
+
+em{
+	font-style: italic;
+}
+i{
+	font-style: italic;
+}
+
+#container .sub_menu ul > li > ul > li{
+  color:#888;
+  font-size:15px;
+  display: block;
+  width:150px;
+  height:44px;
+  left:-30px;
+  border-top:none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin:0;
+  line-height: 2.7em;
+  border:1px solid #ccc;
+  border-bottom:none;
+  background:#fff;
+}

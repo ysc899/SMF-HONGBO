@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.BoardRecruitMapper">
+
+
+	<!-- 채용 로그용 조회 -->
+	<select id="findRecruitBySeq" parameterType="HashMap" resultType="boardRecruitVO">
+		SELECT *
+		FROM TEBA_BOARD_RECRUIT
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 채용 부문 정보 로그용 조회 -->
+	<select id="findRecruitTaskByRecruitSeq" parameterType="HashMap" resultType="boardRecruitTaskVO">
+		SELECT *
+		FROM TEBB_BOARD_RECRUIT_TASK
+		WHERE BOARD_RECRUIT_SEQ = #{seq}
+	</select>
+	
+	
+	<!-- 채용 관리 리스트 -->
+	<select id="findRecruitList" parameterType="HashMap" resultType="boardRecruitListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.HIT_CNT, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'recruitTP'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_TYPE
+			) as CODE_RECRUIT_NAME,
+			ta.CODE_RECRUIT_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'recruitST'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_STATE_TYPE
+			) as CODE_RECRUIT_STATE_NAME,
+			ta.CODE_RECRUIT_STATE_TYPE,
+			ta.VIEW_FLAG,
+			ta.START_DATE,
+			ta.END_DATE,
+			ta.EDIT_DATE 
+		FROM TEBA_BOARD_RECRUIT ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 채용 관리 리스트 카운트 -->
+	<select id="countRecruitList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEBA_BOARD_RECRUIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			<choose>
+				<when test="searchOption != null and searchOption.equals('title')">
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<when test="searchOption != null and searchOption.equals('content')">
+					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+				</when>
+				<otherwise>
+					AND (
+							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+						OR
+							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%')
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- 채용 상세 조회 -->
+	<select id="findRecruitViewBySeq" parameterType="hashmap" resultType="boardRecruitViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.CONTENT,
+			ta.CONTENT_TITLE,
+			ta.CONTENT_COMMENT,
+			ta.INPUT_TYPE_FLAG,
+			ta.HIT_CNT, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'recruitTP'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_TYPE
+			) as CODE_RECRUIT_NAME,
+			ta.CODE_RECRUIT_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'recruitST'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_STATE_TYPE
+			) as CODE_RECRUIT_STATE_NAME,
+			ta.CODE_RECRUIT_STATE_TYPE,
+			ta.VIEW_FLAG,
+			ta.START_DATE,
+			ta.END_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME,
+			ta.EDIT_DATE 
+		FROM TEBA_BOARD_RECRUIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 채용 업무 상세 조회용 -->
+	<select id="findRecruitTaskViewByRecruitSeq" parameterType="hashmap" resultType="boardRecruitTaskVO">
+		SELECT 
+			*
+		FROM TEBB_BOARD_RECRUIT_TASK
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_RECRUIT_SEQ = #{recruitSeq}
+	</select>
+	
+	<!-- 공문 등록 -->
+	<insert id="addRecruit"  parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+		INSERT INTO TEBA_BOARD_RECRUIT
+		(
+			CODE_LANG_TYPE,
+			CODE_RECRUIT_TYPE,
+			CODE_RECRUIT_STATE_TYPE,
+			TITLE,
+			HIT_CNT,
+			INPUT_TYPE_FLAG,
+			CONTENT_TITLE,
+			CONTENT_COMMENT,
+			CONTENT,
+			VIEW_FLAG,
+			START_DATE,
+			<if test="endDate !=null">
+			END_DATE,
+			</if>
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES(
+			#{codeLangType},
+			#{codeRecruitType},
+			#{codeRecruitStateType},
+			#{title},
+			0,
+			#{inputTypeFlag},
+			#{contentTitle},
+			#{contentComment},
+			#{content},
+			#{viewFlag},
+			#{startDate},
+			<if test="endDate !=null">
+			#{endDate},
+			</if>
+			#{regUserId},
+			#{regUserId},
+			now(),
+			now(),
+			'N'
+		)
+	</insert>
+	
+	<!-- 채용 업무 등록 -->
+	<insert id="addRecruitTask"  parameterType="java.util.List">
+		INSERT INTO TEBB_BOARD_RECRUIT_TASK
+		(
+			BOARD_RECRUIT_SEQ,
+			TASK_SECTION,
+			TASK_LOC,
+			TASK_ASSIGNED,
+			TASK_TIME,
+			TASK_REQUIRE,
+			TASK_OPTION,
+			TASK_APES,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.boardRecruitSeq},
+				#{item.taskSection},
+				#{item.taskLoc},
+				#{item.taskAssigned},
+				#{item.taskTime},
+				#{item.taskRequire},
+				#{item.taskOption},
+				#{item.taskApes},
+				#{item.regUserId},
+				#{item.regUserId},
+				now(),
+				now(),
+				'N'
+			)
+		</foreach>
+	</insert>
+	<!-- 채용 업무 등록 -->
+	<insert id="addRecruitTask2"  parameterType="java.util.List">
+		INSERT INTO TEBB_BOARD_RECRUIT_TASK
+		(
+			BOARD_RECRUIT_SEQ,
+			TASK_SECTION,
+			TASK_LOC,
+			TASK_ASSIGNED,
+			TASK_TIME,
+			TASK_REQUIRE,
+			TASK_OPTION,
+			TASK_APES,
+			REG_USER_ID,
+			EDIT_USER_ID,
+			REG_DATE,
+			EDIT_DATE,
+			DELETE_FLAG
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(
+				#{item.boardRecruitSeq},
+				#{item.taskSection},
+				#{item.taskLoc},
+				#{item.taskAssigned},
+				#{item.taskTime},
+				#{item.taskRequire},
+				#{item.taskOption},
+				#{item.taskApes},
+				#{item.regUserId},
+				#{item.regUserId},
+				now(),
+				now(),
+				'N'
+			)
+		</foreach>
+	</insert>
+	
+	
+	<!-- 채용 수정 -->
+	<update id="editRecruit" parameterType="HashMap">
+		UPDATE TEBA_BOARD_RECRUIT
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			CODE_RECRUIT_TYPE= #{codeRecruitType},
+			CODE_RECRUIT_STATE_TYPE = #{codeRecruitStateType},
+			TITLE= #{title},
+			CONTENT= #{content},
+			CONTENT_TITLE= #{contentTitle},
+			CONTENT_COMMENT= #{contentComment},
+			VIEW_FLAG= #{viewFlag},
+			START_DATE= #{startDate},
+			<if test="endDate !=null">
+			END_DATE= #{endDate},
+			</if>
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 채용 업무 -->
+	<update id="editRecruitTask" parameterType="HashMap">
+		UPDATE TEBB_BOARD_RECRUIT_TASK
+		SET 
+			TASK_SECTION= #{taskSection},
+			TASK_LOC= #{taskLoc},
+			TASK_ASSIGNED= #{taskAssigned},
+			TASK_TIME= #{taskTime},
+			TASK_REQUIRE= #{taskRequire},
+			TASK_OPTION= #{taskOption},
+			TASK_APES= #{taskApes},
+			EDIT_USER_ID= #{editUserId},
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND BOARD_RECRUIT_SEQ = #{boardRecruitSeq}
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 대기중인 상태의 채용을 채용 중으로 변경 -->
+	<update id="updateRecruitIng2Wait">
+		UPDATE TEBA_BOARD_RECRUIT
+		SET CODE_RECRUIT_STATE_TYPE = 'ing',
+			EDIT_USER_ID= 'system',
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND START_DATE <![CDATA[ <= ]]> now()
+		AND (
+		    END_DATE is null
+		    OR
+		    END_DATE > now()
+		    )
+		AND CODE_RECRUIT_STATE_TYPE = 'wait'
+	</update>
+	<!-- 채용중인 상태의 채용을 마감으로 변경 -->
+	<update id="updateRecruitEnd2Ing">
+		UPDATE TEBA_BOARD_RECRUIT
+		SET CODE_RECRUIT_STATE_TYPE = 'end',
+			EDIT_USER_ID= 'system',
+			EDIT_DATE= now()
+		WHERE DELETE_FLAG = 'N'
+		AND END_DATE IS NOT NULL
+		AND END_DATE <![CDATA[ <= ]]> now()
+		AND CODE_RECRUIT_STATE_TYPE = 'ing'
+	</update>
+	
+	
+	<!-- 채용  삭제 -->
+	<update id="deleteRecruit" parameterType="HashMap">
+		UPDATE TEBA_BOARD_RECRUIT
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	<!-- 채용 업무들 삭제 -->
+	<update id="deleteRecruitTasks" parameterType="HashMap">
+		UPDATE TEBB_BOARD_RECRUIT_TASK
+		SET 
+			DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE BOARD_RECRUIT_SEQ = #{recruitSeq}
+		AND SEQ in
+			<foreach collection="deleteSeqs" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+	</update>
+	
+
+	<!-- 사용자용 -->
+	
+		<!-- 채용 관리 리스트 -->
+	<select id="findUserRecruitList" parameterType="HashMap" resultType="recruitListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.HIT_CNT, 
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'recruitTP'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_RECRUIT_NAME,
+			ta.CODE_RECRUIT_TYPE,
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'recruitST'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_STATE_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_RECRUIT_STATE_NAME,
+			ta.CODE_RECRUIT_STATE_TYPE,
+			ta.START_DATE,
+			ta.END_DATE
+		FROM TEBA_BOARD_RECRUIT ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.VIEW_FLAG = 'Y'
+		
+		<if test="codeRecruitTP !=null and !codeRecruitTP.equals('')">
+			AND ta.CODE_RECRUIT_TYPE = #{codeRecruitTP}
+		</if>
+		
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+<!-- 			<choose> -->
+<!-- 				<when test="searchOption != null and searchOption.equals('title')"> -->
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+<!-- 				</when> -->
+<!-- 				<otherwise> -->
+<!-- 					AND ( -->
+<!-- 							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%') -->
+<!-- 						OR -->
+<!-- 							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%') -->
+<!-- 					) -->
+<!-- 				</otherwise> -->
+<!-- 			</choose> -->
+		</if>
+		ORDER BY REG_DATE DESC
+		
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+
+	<!-- 채용 관리 리스트 카운트 -->
+	<select id="countUserRecruitList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TEBA_BOARD_RECRUIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.VIEW_FLAG = 'Y'
+		<if test="codeRecruitTP !=null and !codeRecruitTP.equals('')">
+			AND ta.CODE_RECRUIT_TYPE = #{codeRecruitTP}
+		</if>
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+<!-- 			<choose> -->
+<!-- 				<when test="searchOption != null and searchOption.equals('title')"> -->
+					AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+<!-- 				</when> -->
+<!-- 				<when test="searchOption != null and searchOption.equals('content')"> -->
+<!-- 					AND ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%') -->
+<!-- 				</when> -->
+<!-- 				<otherwise> -->
+<!-- 					AND ( -->
+<!-- 							ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%') -->
+<!-- 						OR -->
+<!-- 							ta.CONTENT LIKE CONCAT('%', #{searchKeyword}, '%') -->
+<!-- 					) -->
+<!-- 				</otherwise> -->
+<!-- 			</choose> -->
+		</if>
+	</select>
+	
+		<!-- 채용 사용자 상세 조회 -->
+	<select id="findUserRecruitViewBySeq" parameterType="hashmap" resultType="recruitViewRO">
+		SELECT 
+			ta.SEQ,
+			ta.TITLE, 
+			ta.CONTENT,
+			ta.CONTENT_TITLE,
+			ta.CONTENT_COMMENT,
+			ta.INPUT_TYPE_FLAG,
+			ta.HIT_CNT, 
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'recruitTP'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_RECRUIT_NAME,
+			ta.CODE_RECRUIT_TYPE,
+			(
+				SELECT tba.INFO_NAME
+				FROM TABC_CODE_SLAVE_INFO tba
+				WHERE tba.MASTER_CODE = 'recruitST'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_RECRUIT_STATE_TYPE
+				AND tba.CODE_LANG_TYPE = #{codeLangType}
+			) as CODE_RECRUIT_STATE_NAME,
+			ta.CODE_RECRUIT_STATE_TYPE,
+			ta.VIEW_FLAG,
+			ta.START_DATE,
+			ta.END_DATE,
+			ta.EDIT_DATE 
+		FROM TEBA_BOARD_RECRUIT ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+		AND ta.VIEW_FLAG = 'Y'
+	</select>
+	
+			<!-- 조회수 업 -->
+	<update id="updateRecruitHit" parameterType="HashMap">
+		UPDATE TEBA_BOARD_RECRUIT ta
+		SET ta.HIT_CNT = ta.HIT_CNT+1
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</update>
+
+</mapper>

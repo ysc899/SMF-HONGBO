@@ -1,0 +1,32 @@
+package com.seegene.web.user.task.disease.controller;
+
+import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+@RequestMapping("/task/disease")
+public class DiseaseUserController {
+
+	/**
+	 * @param param 검색조건
+	 * @param model
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping(value="/index.do", method=RequestMethod.GET)
+	public String view(final Locale locale, final Model model, final HttpServletRequest request) throws Exception{
+		
+		if(locale.getLanguage().equals("ko")){
+			return "/user/task/disease/index";
+		}else{
+			return "/user/task/disease/en/index";
+		}
+	}	
+	
+}

@@ -1,0 +1,633 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<link href="css/reset.css" type="text/css" rel="stylesheet">
+		<link href="css/common.css" type="text/css" rel="stylesheet">
+		<link href="css/main.css" type="text/css" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
+		<script src="js/common.js" type="text/javascript"></script>
+	</head>
+
+	<title>:: 씨젠의료재단 ::</title>
+
+	<body>
+
+		<!--wrap-->
+		<div id="wrap">
+
+			<!--header-->
+			<header>
+				<p><img src="./img/call_header.png" alt="씨젠의료재단 전화번호"></p>
+					<h1 class="logo"><a href="index.html"></a></h1>
+						<div class="search">
+
+							<b class="search_bar"></b>
+
+							<select name="검색항목 조회" id="search_arrow">
+								<option value="검색항목 조회">검색항목 조회</option>
+								<option value="">보험코드</option>
+								<option value="">검사코드</option>
+							</select>
+
+							<input type="text" placeholder="검색어를 입력하세요.">
+							<img src="./img/search.png" alt="검색아이콘">
+						</div>
+
+				<nav>
+
+					<ul>
+						<li>
+							<a href="#">주요사업부문</a>
+							<!--큰틀-->
+							<ul id="big_sub01" class="big_sub">
+
+									<!--작은틀01-->
+									<li class="small_sub01">
+										<ul>
+											<li>주요사업부문</li>
+										</ul>
+									</li>
+									<!--//작은틀01 끝-->
+
+									<!--작은틀02-->
+									<li class="small_sub02 aa_area">
+										<ul>
+												<li><a href="#">임상검사사업부</a></li>
+												<li><a href="#">R&D 사업부</a></li>
+												<li><a href="#">임상시험 (Central Lab.)</a></li>
+												<li><a href="#">기관생명 윤리위원회 (IRB)</a></li>
+										</ul>
+									</li>
+									<!--//작은틀02 끝-->
+
+									<!--작은틀03-->
+									<li class="small_sub03 aaa_area">
+										<ul class="small_sub03_01">
+												<li><a href="#">소개</a></li>
+												<li><a href="#">전국 네트워크</a></li>
+										</ul>
+
+										<ul class="small_sub03_02">
+												<li><a href="#">연구용 검사</a></li>
+												<li><a href="#">학술지원프로그램</a></li>
+										</ul>
+
+										<ul class="small_sub03_03">
+												<li><a href="#">개요</a></li>
+												<li><a href="#">심의절차</a></li>
+												<li><a href="#">윤리절차</a></li>
+												<li><a href="#">심의신청제출서류</a></li>
+										</ul>
+									</li>
+									<!--//작은틀03 끝-->
+							</ul>
+							<!--//큰틀 긑-->
+						</li>
+
+						<li>
+							<a href="#">검사부안내</a>
+							<!--큰틀-->
+							<ul id="big_sub02" class="big_sub">
+
+									<!--작은틀01-->
+									<li class="small_sub01">
+										<ul>
+											<li>검사부안내</li>
+										</ul>
+									</li>
+									<!--//작은틀01 끝-->
+
+									<!--작은틀02-->
+									<li class="small_sub02 bb_area">
+										<ul>
+												<li><a href="#">의료진현황</a></li>
+												<li><a href="#">검사실소개</a></li>
+												<li><a href="#">인증현황자료</a></li>
+										</ul>
+									</li>
+									<!--//작은틀02 끝-->
+
+									<!--작은틀03-->
+									<li class="small_sub03 bbb_area">
+										<ul class="small_sub03_01">
+											<li><a href="#">진단검사의학센터</a></li>
+											<li><a href="#">진단면역검사센터</a></li>
+											<li><a href="#">분자진단검사센터</a></li>
+											<li><a href="#">생명과학검사센터</a></li>
+											<li><a href="#">병리센터</a></li>
+
+											<li>
+												<a href="#">부산경남검사센터</a>
+												<ul>
+													<li><a href="#">센터소개</a></li>
+													<li><a href="#">의료진안내</a></li>
+												</ul>
+											</li>
+										</ul>
+
+										<ul class="small_sub03_02">
+											<li>
+												<a href="#">대구경북검사센터</a>
+												<ul>
+													<li><a href="#">센터소개</a></li>
+													<li><a href="#">의료진안내</a></li>
+												</ul>
+											</li>
+
+											<li>
+												<a href="#">광주호남검사센터</a>
+												<ul>
+													<li><a href="#">센터소개</a></li>
+													<li><a href="#">의료진안내</a></li>
+												</ul>
+											</li>
+
+											<li>
+												<a href="#">SKL</a>
+												<ul>
+													<li><a href="#">(Seegene Korean Clinic Labotarions)</a></li>
+												</ul>
+											</li>
+
+											<li>
+												<a href="#">건강증진센터</a>
+											</li>
+									</ul>
+								</li>
+								<!--//작은틀03 끝-->
+							</ul>
+							<!--//큰틀 끝-->
+						</li>
+
+						<li>
+							<a href="#">검사의뢰안내</a>
+
+							<!--큰틀-->
+							<ul id="big_sub03" class="big_sub">
+
+									<!--작은틀01-->
+									<li class="small_sub01">
+										<ul>
+											<li>검사의뢰안내</li>
+										</ul>
+									</li>
+									<!--//작은틀01 끝-->
+
+									<!--작은틀02-->
+									<li class="small_sub02 cc_area">
+										<ul>
+												<li><a href="#">검사업무절차</a></li>
+												<li><a href="#">검사의뢰방법</a></li>
+												<li><a href="#">검체채취 및 취급요령</a></li>
+												<li><a href="#">질환별 검사 안내</a></li>
+												<li><a href="#">검체용기알람</a></li>
+												<li><a href="#">검사항목조회</a></li>
+												<li><a href="#">검사의뢰서</a></li>
+										</ul>
+									</li>
+									<!--//작은틀02 끝-->
+
+									<!--작은틀03-->
+									<li class="small_sub03 ccc_area">
+
+										<ul class="small_sub03_01">
+												<li><a href="#">성매개감염질횐 SET 검사</a></li>
+												<li><a href="#">산부인과 SET 검사</a></li>
+												<li><a href="#">질환별 SET 검사</a></li>
+										</ul>
+
+									</li>
+									<!--//작은틀03 끝-->
+							</ul>
+						</li>
+
+						<li>
+							<a href="#">고객지원</a>
+							<!--큰틀-->
+							<ul id="big_sub04" class="big_sub">
+
+									<!--작은틀01-->
+									<li class="small_sub01">
+										<ul>
+											<li>고객지원</li>
+										</ul>
+									</li>
+									<!--//작은틀01 끝-->
+
+									<!--작은틀02-->
+									<li class="small_sub02">
+										<ul>
+												<li><a href="#">공문</a></li>
+												<li><a href="#">씨젠 Talk</a></li>
+												<li><a href="#">One Click 건강정보</a></li>
+												<li><a href="#">One Click 웹진(학술제작물)</a></li>
+												<li><a href="#">자주하는 질문(FAQ)</a></li>
+										</ul>
+									</li>
+									<!--//작은틀02 끝-->
+							</ul>
+
+						</li>
+
+						<li>
+							<a href="#">재단홍보실</a>
+							<!--큰틀-->
+							<ul id="big_sub05" class="big_sub">
+
+									<!--작은틀01-->
+									<li class="small_sub01">
+										<ul>
+											<li>재단홍보실</li>
+										</ul>
+									</li>
+									<!--//작은틀01 끝-->
+
+									<!--작은틀02-->
+									<li class="small_sub02 dd_area">
+										<ul>
+												<li><a href="#">재단 새소식</a></li>
+												<li><a href="#">재단홍보자료</a></li>
+												<li><a href="#">채용정보</a></li>
+										</ul>
+									</li>
+									<!--//작은틀02 끝-->
+
+									<!--작은틀03-->
+									<li class="small_sub03 ddd_area">
+
+										<ul class="small_sub03_01">
+												<li><a href="#">재단 브로슈어</a></li>
+												<li><a href="#">재단 동영상</a></li>
+												<li><a href="#">재단 포토영상</a></li>
+										</ul>
+
+									</li>
+									<!--//작은틀03 끝-->
+							</ul>
+						</li>
+
+						<li>
+							<a href="#">재단안내</a>
+							<!--큰틀-->
+							<ul id="big_sub06" class="big_sub">
+
+									<!--작은틀01-->
+									<li class="small_sub01">
+										<ul>
+											<li>재단안내</li>
+										</ul>
+									</li>
+									<!--//작은틀01 끝-->
+
+									<!--작은틀02-->
+									<li class="small_sub02">
+										<ul>
+												<li><a href="#">인사말</a></li>
+												<li><a href="#">재단소개&CI</a></li>
+												<li><a href="#">비전&목표</a></li>
+												<li><a href="#">연혁</a></li>
+												<li><a href="#">전국네트워크</a></li>
+												<li><a href="#">찾아오시는 길</a></li>
+										</ul>
+									</li>
+									<!--//작은틀02 끝-->
+							</ul>
+						</li>
+
+						<li>
+							<a href="#" class="test_text">검사결과조회</a>
+						</li>
+					</ul>
+
+					<div id="login_box">
+						<form method="post" action"" name="register">
+							<table>
+								<tbody>
+									<tr>
+										<td>
+											<input type="text" name="userid" placeholder="아이디" value="" class="table_id">
+										</td>
+									</tr>
+
+									<tr>
+										<td>
+											<input type="password" placeholder="비밀번호" value="" password="">
+										</td>
+									</tr>
+
+									<tr>
+										<td>
+											<button type="button" name="로그인" value="로그인">로그인</button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+
+								<input type="checkbox" id="idsave" name="idsave">
+								<label for="idsave">저장하기</label>
+
+						</form>
+					</div>
+
+					<div id="login_box_on">
+						<p>
+							<span class="user_name">서울대부민병원</span>님 환영합니다.
+						</p>
+
+						<input type="button" value="검사결과조회">
+						<a href="#">로그아웃</a>
+					</div>
+
+				</nav>
+
+			</header>
+			<!--//header End-->
+
+			<!--container-->
+			<div id="container">
+
+					<div class="bin_box"></div>
+
+					<!--SGM_news-->
+					<div class="SGM_news">
+						<a href="#"><img src="./img/sgm_news.png" alt="sgm뉴스"></a>
+						<ul id="stock_01" class="stock">
+							<li>
+								<MARQUEE behavior="scroll"  scrollamount="5" direction="left">
+									<a href="#">질병검사 전문의료기관 (재)씨젠의료재단(이사장 천종기)은 2월 20일 서울 밀레니엄 힐튼 호텔(남산)에서 열린
+									'2020 대한검진의학회 춘계 학술대회 및 초음파인수교육'에서 홍보부스를 설치하고 대한검진의학회 회원들을 대상으로 재단의 검사 항목을 소개했다.</a>
+								</MARQUEE>
+							</li>
+
+							<li>
+								<a href="#">손용학 주임의료부장, 카자흐스탄 대통령병원 주관 국제과학포럼에서 ‘분자진단 검사 유용성’ 주제 발표
+								</a>
+							</li>
+
+							<li>
+								<a href="#">질병검사 전문의료기관 (재)씨젠의료재단(이사장 천종기)은 8월 6일 포항의료나눔봉사단 세미나실에서 포항의료나눔봉사단(단장 안상구)과 ‘의료분야 사회공헌활동 업무협약’을 체결했다.
+								</a>
+							</li>
+						</ul>
+					</div>
+					<!--//SGM_news End-->
+
+
+				<!--notice & oneclcik-->
+				<div id="n_o">
+					<!--//notice-->
+					<div class="notice">
+
+						<ul class="tabs">
+							<li class="tab-link current" data-tab="tab-1">공지사항</li>
+							<li class="tab-link" data-tab="tab-2">공문</li>
+							<li class="tab-link" data-tab="tab-3">학술제작물</li>
+							<li><a href="#"><img src="./img/plus.png" alt="더보기버튼"></a></li>
+						</ul>
+
+
+							<!--tab menu01-->
+							<div id="tab-1" class="tab-content current">
+								<ul>
+									<li>
+										<a href="#">대한검진의학회 2020 춘계 학술대회 현장서 부스 홍보
+											<img src="./img/new_ico.png" alt="" style="width:14px;vertical-align:-1px;"><span>2020-02-17</span>
+										</a>
+									</li>
+
+									<li><a href="#">2020년도 검사안내책자 발간<span>2020-02-15</span></a></li>
+									<li><a href="#">신규 입사 및 정규직 전환자 임명장 수여식 성료<span>2020-02-14</span></a></li>
+									<li><a href="#">신종 코로나바이러스 긴급 대응 체제 구축 및 운영<span>2020-02-10</span></a></li>
+									<li><a href="#">3년 연속 베트남 빈딘성 보건의료 봉사 수행<span>2020-02-07</span></a></li>
+									<li><a href="#">고려인광주진료소와 의료분야 사회공헌활동 업무협약 체결<span>2020-02-05</span></a></li>
+								</ul>
+							</div>
+							<!--//tab munu01 End-->
+
+							<!--tab menu02-->
+							<div id="tab-2" class="tab-content">
+								<ul>
+									<li><a href="#">대한검진의학회 2020 춘계 학술대회 현장서 부스 홍보<span>2020-02-13</span></a></li>
+									<li><a href="#">2020년도 검사안내책자 발간<span>2020-02-11</span></a></li>
+									<li><a href="#">신규 입사 및 정규직 전환자 임명장 수여식 성료<span>2020-02-10</span></a></li>
+									<li><a href="#">신<span>2020-02-09</span></a></li>
+									<li><a href="#">3년 연속 베트남 빈딘성 보건의료 봉사 수행<span>2020-02-04</span></a></li>
+									<li><a href="#">고려인광주진료소와 의료분야 사회공헌활동 업무협약 체결<span>2020-02-01</span></a></li>
+								</ul>
+							</div>
+							<!--//tab menu02 End-->
+
+							<!--tab menu03-->
+							<div id="tab-3" class="tab-content">
+								<ul>
+									<li><a href="#">대한검진의학회 2020 춘계 학술대회 현장서 부스 홍보<span>2020-02-14</span></a></li>
+									<li><a href="#">202발간<span>2020-02-10</span></a></li>
+									<li><a href="#">신규 입사 및 정규직 전환자 임명장 수여식 성료<span>2020-02-09</span></a></li>
+									<li><a href="#">신종 코로나바이러스 긴급 대응 체제 구축 및 운영<span>2020-02-08</span></a></li>
+									<li><a href="#">3년 연속 베트남 빈딘성 보건의료 봉사 수행<span>2020-02-07</span></a></li>
+									<li><a href="#">고려인광주진료소와 의료분야 사회공헌활동 업무협약 체결<span>2020-02-06</span></a></li>
+								</ul>
+							</div>
+							<!--//tab menu03 End-->
+
+					</div>
+					<!--//notice End-->
+
+					<!--one_click-->
+					<div class="one_click">
+
+						<div class="one_click_box">
+							<span class="one_click_title">원클릭 건강정보</span>
+							<p><a href="#"><img src="./img/plus.png" alt="더보기버튼"></a></p>
+						</div>
+
+						<ul>
+							<li>
+								<a href="#">
+									<img src="./img/notice_01.png" alt="원클릭정보이미지1">
+									<p>악성빈혈</p>
+									<span>만성으로 경과하는 중증의 빈혈!</span>
+								</a>
+							</li>
+
+							<li>
+								<a href="#">
+									<img src="./img/notice_02.png" alt="원클릭정보이미지2">
+									<p>기관지천식</p>
+									<span>밤낮으로 큰 일교차 기관지천식을 유의하세요!</span>
+								</a>
+							</li>
+
+							<li>
+								<a href="#">
+									<img src="./img/notice_03.png" alt="원클릭정보이미지3">
+									<p>심부전증</p>
+									<span>조금 움직였을 뿐인데 숨이 찬다?..</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+					<!--//one_click End-->
+				</div>
+				<!--//notice & oneclick End-->
+
+					<div class="sub_menu">
+							<a href="#">
+								<dl>
+									<dt><img src="./img/main_img01.png" alt="서브이미지1" class="sub_img"></dt>
+									<dd class="sub_title">검사시스템</dd>
+									<dd><img src="./img/red_bar.png" alt="바" class="bar"></dd>
+									<dd class="sub_text">ONE DAY 검사시스템</dd>
+								</dl>
+							</a>
+
+							<a href="#">
+								<dl>
+									<dt><img src="./img/main_img02.png" alt="서브이미지2" class="sub_img"></dt>
+									<dd class="sub_title">질병검사</dd>
+									<dd><img src="./img/red_bar.png" alt="바" class="bar"></dd>
+									<dd class="sub_text">차세대염기서열(NGS) 분석 패널 검사</dd>
+								</dl>
+							</a>
+
+							<a href="#">
+								<dl>
+									<dt><img src="./img/main_img03.png" alt="서브이미지3" class="sub_img"></dt>
+									<dd class="sub_title">검사센터</dd>
+									<dd><img src="./img/red_bar.png" alt="바" class="bar"></dd>
+									<dd class="sub_text">대구경북검사센터</dd>
+								</dl>
+							</a>
+
+							<a href="#">
+								<dl>
+									<dt><img src="./img/main_img04.png" alt="서브이미지4" class="sub_img"></dt>
+									<dd class="sub_title">사내문화</dd>
+									<dd><img src="./img/red_bar.png" alt="바" class="bar"></dd>
+									<dd class="sub_text">임직원 사진공모전</dd>
+								</dl>
+							</a>
+					</div>
+
+			</div>
+			<!--//container End-->
+
+		<div id="rolling">
+			<div class="rolling_box">
+				<ul class="rolling_ef cf">
+					<li class="b1"></li>
+					<li class="b2"></li>
+					<li class="b3"></li>
+					<li class="b4"></li>
+					<li class="b5"></li>
+					<li class="b6"></li>
+					<li class="b7"></li>
+					<li class="b8"></li>
+					<li class="b9"></li>
+					<li class="b10"></li>
+					<li class="b11"></li>
+				</ul>
+			</div>
+
+			<!-- <div class="prev"><img src="img/arrow_efefef_prev.png" alt="이전화살표"></div>
+			<div class="next"><img src="img/arrow_efefef_next.png" alt="다음화살표"></div> -->
+		</div>
+
+
+			<!--footer-->
+			<footer>
+
+				<div class="address">
+					<address>
+						서울특별시 성동구 천호대로 320 (용답동 2-3) / 대표상담전화 1566-6500 / 대표팩스번호 02-3394-6503
+					</address>
+					<p>Copyright © Seegene Medical Foundation. All right reserved.</p>
+				</div>
+
+				<ul>
+					<li><a href="#">개인정보취급방침</a></li>
+					<li><a href="#">인트라넷</a></li>
+					<li>
+						<select name="패밀리사이트" id="family_site">
+							<option value="패밀리사이트">패밀리사이트</option>
+							<option value="패밀리사이트">(주)씨젠</option>
+							<option value="패밀리사이트">(주)씨소프트</option>
+							<option value="패밀리사이트">씨젠우먼</option>
+							<option value="패밀리사이트">SG매디컬</option>
+						</select>
+					</li>
+				</ul>
+
+			</footer>
+			<!--//footer End-->
+
+	</div>
+	<!--//wrap End-->
+
+	<!-- banner_slide-->
+	<div class="slide">
+
+		<ul class="panel">
+			<li class="banner1 on">
+				 <p class="banner_title">Global Standard of Reference Lab Seegene Medical Foundation</p>
+				 <img src="./img/white_bar.png" alt="하얀색바">
+				 <p class="banner_text">최고의 검사품질로 건강과 행복을 지킵니다.</p>
+			 </li>
+
+			<li class="banner2">
+				<p class="banner_title"><a href="#">One Day 검사시스템</a></p>
+				<img src="./img/white_bar.png" alt="하얀색바">
+				<p class="banner_text">씨젠의료재단 One day 검사는 가장 빠른 분자진단 검사결과 Report System입니다.</p>
+			 </li>
+
+			<li class="banner3">
+				<p class="banner_title"><a href="#">신종 코로나바이러스감염증</a></p>
+				<img src="./img/white_bar.png" alt="하얀색바">
+				<p class="banner_text">2019년 중국 우한에 처음 발생한뒤 전 세계로 확산된 호흡기감염질환</p>
+				<a href="#" class="more_a"><p class="more_button">상세정보<img src="img/search2.png" alt="돋보기아이콘"></p></a>
+			</li>
+		</ul>
+
+		<ul class="dot">
+			<li class="on"></li>
+			<li></li>
+			<li></li>
+		</ul>
+
+		<div class="arrow_area">
+			<div class="prev1"><img src="img/arrow_efefef_next.png" alt="이전화살표" /></div>
+			<div class="next1"><img src="img/arrow_efefef_prev.png" alt="다음화살표"/></div>
+		</div>
+
+	</div>
+	<!--banner_slide End-->
+
+	<!--hide_menu-->
+	<div id="hide_menu">
+		<ul>
+			<li>검사의뢰서</li>
+			<li>FAQ</li>
+			<li>의뢰안내</li>
+			<li>학술지원</li>
+			<li>원격지원</li>
+			<li>채용정보</li>
+			<!-- <li class="after__menu">관계법령</li> -->
+			<li>ENG</li>
+			<li>
+				<a href="#" class="facebook"></a>
+				<a href="#" class="youtube"></a>
+			</li>
+		</ul>
+	</div>
+	<!--//hide_menu-->
+
+	<div class="red_bg"></div>
+	<div class="gray_bg"></div>
+
+
+
+  </body>
+  </html>

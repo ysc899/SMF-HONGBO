@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<setting name="useGeneratedKeys" value="true"/>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="defaultStatementTimeout" value="25"/>
+		<setting name="defaultFetchSize" value="500"/>
+	</settings>
+	
+    <typeAliases>
+		<typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+		
+		<typeAlias alias="loginVO" type="com.seegene.web.auth.vo.DB2UserLoginVO"/>
+		<typeAlias alias="userChangePwVO" type="com.seegene.web.auth.vo.DB2UserChangePwVO"/>
+		<typeAlias alias="trmsLoginVO" type="com.seegene.web.auth.vo.DB2TrmsLoginVO"/>
+		
+		
+		<typeAlias alias="db2BoardPO" type="com.seegene.web.admin.board.db2.vo.Db2BoardPO"/>
+		
+		
+		<typeAlias alias="boardDb2SearchRO" type="com.seegene.web.admin.board.init.vo.BoardDb2SearchRO"/>
+		<typeAlias alias="boardDb2SearchDtlRO" type="com.seegene.web.admin.board.init.vo.BoardDb2SearchDtlRO"/>
+		<typeAlias alias="boardDb2SearchFileRO" type="com.seegene.web.admin.board.init.vo.BoardDb2SearchFileRO"/>
+		
+		
+		
+		<typeAlias alias="db2CodeRO" type="com.seegene.web.admin.inspection.test.vo.DB2CodeRO"/>
+		<typeAlias alias="mwt001R1ListRO" type="com.seegene.web.admin.inspection.test.vo.MWT001R1ListRO"/>
+		<typeAlias alias="mwt001R2ViewRO" type="com.seegene.web.admin.inspection.test.vo.MWT001R2ViewRO"/>
+		<typeAlias alias="mwt001R3ListRO" type="com.seegene.web.admin.inspection.test.vo.MWT001R3ListRO"/>
+		
+    </typeAliases>
+</configuration>

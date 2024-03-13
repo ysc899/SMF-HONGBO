@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<setting name="useGeneratedKeys" value="true"/>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="defaultStatementTimeout" value="25"/>
+		<setting name="defaultFetchSize" value="500"/>
+	</settings>
+	
+    <typeAliases>
+		<typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap"/>
+		
+		<typeAlias alias="codeMasterVO" type="com.seegene.web.admin.code.vo.CodeMasterVO"/>
+		<typeAlias alias="codeSlaveVO" type="com.seegene.web.admin.code.vo.CodeSlaveVO"/>
+		<typeAlias alias="codeSlaveRO" type="com.seegene.web.admin.code.vo.CodeSlaveRO"/>
+		
+		<typeAlias alias="codeMasterListRO" type="com.seegene.web.admin.code.vo.CodeMasterListRO"/>
+		<typeAlias alias="codeMasterViewRO" type="com.seegene.web.admin.code.vo.CodeMasterViewRO"/>
+		<typeAlias alias="codeSlaveViewRO" type="com.seegene.web.admin.code.vo.CodeSlaveViewRO"/>
+		<typeAlias alias="codeSlaveInfoRO" type="com.seegene.web.admin.code.vo.CodeSlaveInfoRO"/>
+		<typeAlias alias="codeSlaveInfoVO" type="com.seegene.web.admin.code.vo.CodeSlaveInfoVO"/>
+		
+		
+		<typeAlias alias="adminUserVO" type="com.seegene.web.admin.user.vo.AdminUserVO"/>
+		<typeAlias alias="mainAdminMenuRO" type="com.seegene.web.admin.user.vo.MainAdminMenuRO"/>
+		
+		<typeAlias alias="adminUserMenuMappingVO" type="com.seegene.web.admin.user.vo.AdminUserMenuMappingVO"/>
+		<typeAlias alias="menuAdminVO" type="com.seegene.web.admin.menu.admin.vo.MenuAdminVO"/>
+		
+		<typeAlias alias="adminRoleVO" type="com.seegene.web.admin.role.vo.AdminRoleVO"/>
+		<typeAlias alias="adminRoleMenuMappingVO" type="com.seegene.web.admin.role.vo.AdminRoleMenuMappingVO"/>
+		
+		<typeAlias alias="adminRoleMenuRO" type="com.seegene.web.admin.role.vo.AdminRoleMenuRO"/>
+		
+		
+		<typeAlias alias="menuAdminListRO" type="com.seegene.web.admin.menu.admin.vo.MenuAdminListRO"/>
+		<typeAlias alias="menuAdminViewRO" type="com.seegene.web.admin.menu.admin.vo.MenuAdminViewRO"/>
+		<typeAlias alias="menuAdminSelectParentRO" type="com.seegene.web.admin.menu.admin.vo.MenuAdminSelectParentRO"/>
+
+
+		<typeAlias alias="menuVO" type="com.seegene.web.admin.menu.user.vo.MenuVO"/>
+		<typeAlias alias="menuSelectParentListRO" type="com.seegene.web.admin.menu.user.vo.MenuSelectParentListRO"/>
+		
+		
+		<typeAlias alias="mainRollingVO" type="com.seegene.web.admin.main.rolling.vo.MainRollingVO"/>
+		<typeAlias alias="mainRollingListRO" type="com.seegene.web.admin.main.rolling.vo.MainRollingListRO"/>
+		<typeAlias alias="mainRollingViewRO" type="com.seegene.web.admin.main.rolling.vo.MainRollingViewRO"/>
+		
+		
+		
+		
+		<typeAlias alias="mainLogoVO" type="com.seegene.web.admin.main.logo.vo.MainLogoVO"/>
+		<typeAlias alias="mainLogoListRO" type="com.seegene.web.admin.main.logo.vo.MainLogoListRO"/>
+		<typeAlias alias="mainLogoViewRO" type="com.seegene.web.admin.main.logo.vo.MainLogoViewRO"/>
+		
+		<typeAlias alias="mainLogoUserRO" type="com.seegene.web.admin.main.logo.vo.MainLogoUserRO"/>
+		
+		
+		
+		<typeAlias alias="mainPopupVO" type="com.seegene.web.admin.main.popup.vo.MainPopupVO"/>
+		<typeAlias alias="mainPopupListRO" type="com.seegene.web.admin.main.popup.vo.MainPopupListRO"/>
+		<typeAlias alias="mainPopupViewRO" type="com.seegene.web.admin.main.popup.vo.MainPopupViewRO"/>
+		<typeAlias alias="mainPopupUserRO" type="com.seegene.web.admin.main.popup.vo.MainPopupUserRO"/>
+		
+		
+		
+		
+		
+		
+		<typeAlias alias="mainSubBannerVO" type="com.seegene.web.admin.main.banner.sub.vo.MainSubBannerVO"/>
+		<typeAlias alias="mainSubBannerListRO" type="com.seegene.web.admin.main.banner.sub.vo.MainSubBannerListRO"/>
+		<typeAlias alias="mainSubBannerViewRO" type="com.seegene.web.admin.main.banner.sub.vo.MainSubBannerViewRO"/>
+		<typeAlias alias="mainUserBannerSubListRO" type="com.seegene.web.admin.main.banner.sub.vo.MainUserBannerSubListRO"/>
+		
+		
+		<typeAlias alias="mainBannerVO" type="com.seegene.web.admin.main.banner.main.vo.MainBannerVO"/>
+		<typeAlias alias="mainBannerListRO" type="com.seegene.web.admin.main.banner.main.vo.MainBannerListRO"/>
+		<typeAlias alias="mainBannerViewRO" type="com.seegene.web.admin.main.banner.main.vo.MainBannerViewRO"/>
+		<typeAlias alias="mainUserBannerListRO" type="com.seegene.web.admin.main.banner.main.vo.MainUserBannerListRO"/>
+		
+		
+		
+		
+		
+		<typeAlias alias="certificationVO" type="com.seegene.web.admin.status.certification.vo.CertificationVO"/>
+		<typeAlias alias="certificationListRO" type="com.seegene.web.admin.status.certification.vo.CertificationListRO"/>
+		<typeAlias alias="certificationViewRO" type="com.seegene.web.admin.status.certification.vo.CertificationViewRO"/>
+		
+		
+		<typeAlias alias="certListRO" type="com.seegene.web.user.inspection.cert.vo.CertListRO"/>
+		
+		
+		
+		
+		<typeAlias alias="historyVO" type="com.seegene.web.admin.status.history.vo.HistoryVO"/>
+		<typeAlias alias="historyListRO" type="com.seegene.web.admin.status.history.vo.HistoryListRO"/>
+		<typeAlias alias="historyViewRO" type="com.seegene.web.admin.status.history.vo.HistoryViewRO"/>
+		
+		
+		<typeAlias alias="historyUserListRO" type="com.seegene.web.user.foundation.history.vo.HistoryUserListRO"/>
+		<typeAlias alias="historyUserYearInfoRO" type="com.seegene.web.user.foundation.history.vo.HistoryUserYearInfoRO"/>
+		
+		
+		
+		
+		
+		<typeAlias alias="staffsVO" type="com.seegene.web.admin.status.staffs.vo.StaffsVO"/>
+		<typeAlias alias="staffsInfoVO" type="com.seegene.web.admin.status.staffs.vo.StaffsInfoVO"/>
+		<typeAlias alias="staffsHistoryVO" type="com.seegene.web.admin.status.staffs.vo.StaffsHistoryVO"/>
+		<typeAlias alias="staffsListRO" type="com.seegene.web.admin.status.staffs.vo.StaffsListRO"/>
+		<typeAlias alias="staffsViewRO" type="com.seegene.web.admin.status.staffs.vo.StaffsViewRO"/>
+		<typeAlias alias="staffsInfoViewRO" type="com.seegene.web.admin.status.staffs.vo.StaffsInfoViewRO"/>
+		<typeAlias alias="staffsHistoryViewRO" type="com.seegene.web.admin.status.staffs.vo.StaffsHistoryViewRO"/>
+		
+		
+		<typeAlias alias="staffsUserListRO" type="com.seegene.web.user.inspection.staffs.vo.StaffsUserListRO"/>
+		<typeAlias alias="staffsUserViewRO" type="com.seegene.web.user.inspection.staffs.vo.StaffsUserViewRO"/>
+		<typeAlias alias="staffsUserHistoryListRO" type="com.seegene.web.user.inspection.staffs.vo.StaffsUserHistoryListRO"/>
+		
+		
+		
+		
+		
+		<typeAlias alias="networkMappingVO" type="com.seegene.web.admin.status.network.vo.NetworkMappingVO"/>
+		<typeAlias alias="networkStaffsInfoVO" type="com.seegene.web.admin.status.network.vo.NetworkStaffsInfoVO"/>
+		<typeAlias alias="networkStaffsVO" type="com.seegene.web.admin.status.network.vo.NetworkStaffsVO"/>
+		<typeAlias alias="networkListRO" type="com.seegene.web.admin.status.network.vo.NetworkListRO"/>
+		<typeAlias alias="networkViewRO" type="com.seegene.web.admin.status.network.vo.NetworkViewRO"/>
+		<typeAlias alias="networkStaffsInfoRO" type="com.seegene.web.admin.status.network.vo.NetworkStaffsInfoRO"/>
+		<typeAlias alias="networkMappingRO" type="com.seegene.web.admin.status.network.vo.NetworkMappingRO"/>
+		<typeAlias alias="networkLocCountRO" type="com.seegene.web.admin.status.network.vo.NetworkLocCountRO"/>
+		
+		
+		<typeAlias alias="businessClinicalNetworkListRO" type="com.seegene.web.user.business.clinical.vo.BusinessClinicalNetworkListRO"/>
+		
+		
+		
+		<typeAlias alias="healthInfoVO" type="com.seegene.web.admin.health.vo.HealthInfoVO"/>
+		<typeAlias alias="healthInfoListRO" type="com.seegene.web.admin.health.vo.HealthInfoListRO"/>
+		<typeAlias alias="healthInfoViewRO" type="com.seegene.web.admin.health.vo.HealthInfoViewRO"/>
+		<typeAlias alias="healthInfoSourceVO" type="com.seegene.web.admin.health.vo.HealthInfoSourceVO"/>
+		<typeAlias alias="healthInfoTestListRO" type="com.seegene.web.admin.health.vo.HealthInfoTestListRO"/>
+		<typeAlias alias="healthInfoTestHardInfoVO" type="com.seegene.web.admin.health.vo.HealthInfoTestHardInfoVO"/>
+		<typeAlias alias="healthInfoTestCodeVO" type="com.seegene.web.admin.health.vo.HealthInfoTestCodeVO"/>
+		<typeAlias alias="healinfoTestPO" type="com.seegene.web.admin.health.vo.HealinfoTestPO"/>
+		<typeAlias alias="healthInfoTestEditRO" type="com.seegene.web.admin.health.vo.HealthInfoTestEditRO"/>
+		<typeAlias alias="healthinfoCommonDeletePO" type="com.seegene.web.admin.health.vo.HealthinfoCommonDeletePO"/>
+		<typeAlias alias="healinfoTestEditPO" type="com.seegene.web.admin.health.vo.HealinfoTestEditPO"/>
+		
+		
+		<typeAlias alias="healthInfoTitleRO" type="com.seegene.web.user.customer.healthinfo.vo.HealthInfoTitleRO"/>
+		<typeAlias alias="healthInfoUserListRO" type="com.seegene.web.user.customer.healthinfo.vo.HealthInfoUserListRO"/>
+		<typeAlias alias="healthInfoUserViewRO" type="com.seegene.web.user.customer.healthinfo.vo.HealthInfoUserViewRO"/>
+		<typeAlias alias="healthInfoUserTestHardInfoPO" type="com.seegene.web.user.customer.healthinfo.vo.HealthInfoUserTestHardInfoPO"/>
+		<typeAlias alias="healthInfoUserSourcePO" type="com.seegene.web.user.customer.healthinfo.vo.HealthInfoUserSourcePO"/>
+		<typeAlias alias="healthInfoUserNextPreRO" type="com.seegene.web.user.customer.healthinfo.vo.HealthInfoUserNextPreRO"/>
+
+
+		<typeAlias alias="boardNoticeVO" type="com.seegene.web.admin.board.notice.vo.BoardNoticeVO"/>
+		<typeAlias alias="boardNoticeFileVO" type="com.seegene.web.admin.board.notice.vo.BoardNoticeFileVO"/>
+		<typeAlias alias="boardNoticeListRO" type="com.seegene.web.admin.board.notice.vo.BoardNoticeListRO"/>
+		<typeAlias alias="boardNoticeViewRO" type="com.seegene.web.admin.board.notice.vo.BoardNoticeViewRO"/>
+		<typeAlias alias="boardNoticeFileViewRO" type="com.seegene.web.admin.board.notice.vo.BoardNoticeFileViewRO"/>
+		
+		
+		<typeAlias alias="noticeListRO" type="com.seegene.web.user.customer.notice.vo.NoticeListRO"/>
+		<typeAlias alias="noticeViewRO" type="com.seegene.web.user.customer.notice.vo.NoticeViewRO"/>
+		<typeAlias alias="noticeViewNextPreRO" type="com.seegene.web.user.customer.notice.vo.NoticeViewNextPreRO"/>
+		
+		
+		
+		<typeAlias alias="boardDefaultMasterVO" type="com.seegene.web.admin.board.manage.vo.BoardDefaultMasterVO"/>
+		<typeAlias alias="boardManageListRO" type="com.seegene.web.admin.board.manage.vo.BoardManageListRO"/>
+		<typeAlias alias="boardManageViewRO" type="com.seegene.web.admin.board.manage.vo.BoardManageViewRO"/>
+		
+		
+		<typeAlias alias="boardDefaultSlaveVO" type="com.seegene.web.admin.board.integrated.vo.BoardDefaultSlaveVO"/>
+		<typeAlias alias="boardDefaultFileVO" type="com.seegene.web.admin.board.integrated.vo.BoardDefaultFileVO"/>
+		<typeAlias alias="boardIntegratedListRO" type="com.seegene.web.admin.board.integrated.vo.BoardIntegratedListRO"/>
+		<typeAlias alias="boardOptInfoRO" type="com.seegene.web.admin.board.integrated.vo.BoardOptInfoRO"/>
+		<typeAlias alias="boardIntegratedViewRO" type="com.seegene.web.admin.board.integrated.vo.BoardIntegratedViewRO"/>
+		<typeAlias alias="boardIntegratedFileViewRO" type="com.seegene.web.admin.board.integrated.vo.BoardIntegratedFileViewRO"/>
+		
+		
+		<typeAlias alias="boardListRO" type="com.seegene.web.user.board.integrated.vo.BoardListRO"/>
+		<typeAlias alias="boardViewRO" type="com.seegene.web.user.board.integrated.vo.BoardViewRO"/>
+		<typeAlias alias="boardViewNextPreRO" type="com.seegene.web.user.board.integrated.vo.BoardViewNextPreRO"/>
+		
+		
+		<typeAlias alias="boardRecruitVO" type="com.seegene.web.admin.board.recruit.vo.BoardRecruitVO"/>
+		<typeAlias alias="boardRecruitTaskVO" type="com.seegene.web.admin.board.recruit.vo.BoardRecruitTaskVO"/>
+		<typeAlias alias="boardRecruitListRO" type="com.seegene.web.admin.board.recruit.vo.BoardRecruitListRO"/>
+		<typeAlias alias="boardRecruitViewRO" type="com.seegene.web.admin.board.recruit.vo.BoardRecruitViewRO"/>
+		
+		
+		
+		<typeAlias alias="recruitListRO" type="com.seegene.web.user.board.recruit.vo.RecruitListRO"/>
+		<typeAlias alias="recruitViewRO" type="com.seegene.web.user.board.recruit.vo.RecruitViewRO"/>
+		
+		
+		
+		
+		<typeAlias alias="boardFaQMasterVO" type="com.seegene.web.admin.faq.manage.vo.BoardFaQMasterVO"/>
+		<typeAlias alias="faqManageListRO" type="com.seegene.web.admin.faq.manage.vo.FaqManageListRO"/>
+		<typeAlias alias="faqManageViewRO" type="com.seegene.web.admin.faq.manage.vo.FaqManageViewRO"/>
+		
+		<typeAlias alias="boardFaQSlaveVO" type="com.seegene.web.admin.faq.integrated.vo.BoardFaQSlaveVO"/>
+		<typeAlias alias="faqIntegratedResultRO" type="com.seegene.web.admin.faq.integrated.vo.FaqIntegratedResultRO"/>
+		
+		
+		
+		<typeAlias alias="faqUserListRO" type="com.seegene.web.user.faq.vo.FaqUserListRO"/>
+		
+		
+		<typeAlias alias="promotionVO" type="com.seegene.web.admin.promotion.vo.PromotionVO"/>
+		<typeAlias alias="promotionListRO" type="com.seegene.web.admin.promotion.vo.PromotionListRO"/>
+		<typeAlias alias="promotionViewRO" type="com.seegene.web.admin.promotion.vo.PromotionViewRO"/>
+		
+		
+		<typeAlias alias="promotionUserListRO" type="com.seegene.web.user.promotion.vo.PromotionUserListRO"/>
+		
+		
+		
+		<typeAlias alias="ebookVO" type="com.seegene.web.admin.promotion.ebook.vo.EBookVO"/>
+		<typeAlias alias="ebookListRO" type="com.seegene.web.admin.promotion.ebook.vo.EBookListRO"/>
+		<typeAlias alias="ebookViewRO" type="com.seegene.web.admin.promotion.ebook.vo.EBookViewRO"/>
+		
+		
+		<typeAlias alias="webzineListRO" type="com.seegene.web.user.customer.webzine.vo.WebzineListRO"/>
+		
+		
+		
+		
+		<typeAlias alias="inspectionTestEditVO" type="com.seegene.web.admin.inspection.test.vo.InspectionTestEditVO"/>
+		<typeAlias alias="inspectionTestEditLogRO" type="com.seegene.web.admin.inspection.test.vo.InspectionTestEditLogRO"/>
+		
+		<typeAlias alias="inspectionListRO" type="com.seegene.web.admin.inspection.test.vo.InspectionListRO"/>
+		<typeAlias alias="inspectionTestEditViewRO" type="com.seegene.web.admin.inspection.test.vo.InspectionTestEditViewRO"/>
+		
+		<typeAlias alias="inspectionTestEngVO" type="com.seegene.web.admin.inspection.test.vo.InspectionTestEngVO"/>
+		<typeAlias alias="inspectionTestEngListRO" type="com.seegene.web.admin.inspection.test.vo.InspectionTestEngListRO"/>
+		
+		
+		<typeAlias alias="inspectionRequestVO" type="com.seegene.web.admin.inspection.request.vo.InspectionRequestVO"/>
+		<typeAlias alias="inspectionRequestListRO" type="com.seegene.web.admin.inspection.request.vo.InspectionRequestListRO"/>
+		<typeAlias alias="inspectionRequestViewRO" type="com.seegene.web.admin.inspection.request.vo.InspectionRequestViewRO"/>
+		
+		<typeAlias alias="requestDataRO" type="com.seegene.web.user.task.request.vo.RequestDataRO"/>
+
+
+		
+		<typeAlias alias="vesselVO" type="com.seegene.web.admin.inspection.vessel.vo.VesselVO"/>
+		<typeAlias alias="inspectionVesselListRO" type="com.seegene.web.admin.inspection.vessel.vo.InspectionVesselListRO"/>
+		<typeAlias alias="inspectionVesselViewRO" type="com.seegene.web.admin.inspection.vessel.vo.InspectionVesselViewRO"/>
+		
+		
+		<typeAlias alias="vesselUserAllListRO" type="com.seegene.web.user.task.vessel.vo.VesselUserAllListRO"/>
+		<typeAlias alias="vesselUserListRO" type="com.seegene.web.user.task.vessel.vo.VesselUserListRO"/>
+		<typeAlias alias="vesselUserViewRO" type="com.seegene.web.user.task.vessel.vo.VesselUserViewRO"/>
+		<typeAlias alias="vesselUserNextPreRO" type="com.seegene.web.user.task.vessel.vo.VesselUserNextPreRO"/>
+		
+		
+		<typeAlias alias="logEditVO" type="com.seegene.web.admin.log.edit.vo.LogEditVO"/>
+		<typeAlias alias="logEditListRO" type="com.seegene.web.admin.log.edit.vo.LogEditListRO"/>
+		<typeAlias alias="logEditViewRO" type="com.seegene.web.admin.log.edit.vo.LogEditViewRO"/>
+		
+		
+		<typeAlias alias="logAccessVO" type="com.seegene.web.admin.log.access.vo.LogAccessVO"/>
+		<typeAlias alias="logAccessListRO" type="com.seegene.web.admin.log.access.vo.LogAccessListRO"/>
+		<typeAlias alias="logAccessDownloadListRO" type="com.seegene.web.admin.log.access.vo.LogAccessDownloadListRO"/>
+		
+		
+		<typeAlias alias="logUserStatisRO" type="com.seegene.web.admin.log.access.vo.LogUserStatisRO"/>
+		<typeAlias alias="logUserYearStatisRO" type="com.seegene.web.admin.log.access.vo.LogUserYearStatisRO"/>
+		<typeAlias alias="logUserYearStatisExcelRO" type="com.seegene.web.admin.log.access.vo.LogUserYearStatisExcelRO"/>
+		<typeAlias alias="logMenuStatisRO" type="com.seegene.web.admin.log.access.vo.LogMenuStatisRO"/>
+		
+		
+		<typeAlias alias="logErrorVO" type="com.seegene.web.admin.log.error.vo.LogErrorVO"/>
+		<typeAlias alias="logErrorListRO" type="com.seegene.web.admin.log.error.vo.LogErrorListRO"/>
+		<typeAlias alias="logErrorViewRO" type="com.seegene.web.admin.log.error.vo.LogErrorViewRO"/>
+		
+		
+		<typeAlias alias="logDeviceInfoVO" type="com.seegene.web.admin.log.device.vo.LogDeviceInfoVO"/>
+		<typeAlias alias="logDeviceInfoListRO" type="com.seegene.web.admin.log.device.vo.LogDeviceInfoListRO"/>
+		<typeAlias alias="logDeviceStaticsRO" type="com.seegene.web.admin.log.device.vo.LogDeviceStaticsRO"/>
+		
+		<typeAlias alias="rollingRO" type="com.seegene.web.user.main.vo.RollingRO"/>
+		
+		
+		<typeAlias alias="db2BoardMappingVO" type="com.seegene.web.admin.board.db2.vo.Db2BoardMappingVO"/>
+		
+		
+		<!-- 급여 고시 추가 -->
+		<typeAlias alias="payrollNoticeVO" type="com.seegene.web.admin.board.payrollNotice.vo.PayrollNoticeVO"/>
+		<typeAlias alias="payrollNoticeFileVO" type="com.seegene.web.admin.board.payrollNotice.vo.PayrollNoticeFileVO"/>
+		<typeAlias alias="payrollNoticeListRO" type="com.seegene.web.admin.board.payrollNotice.vo.PayrollNoticeListRO"/>
+		<typeAlias alias="payrollNoticeViewRO" type="com.seegene.web.admin.board.payrollNotice.vo.PayrollNoticeViewRO"/>
+		<typeAlias alias="payrollNoticeFileViewRO" type="com.seegene.web.admin.board.payrollNotice.vo.PayrollNoticeFileViewRO"/>
+		
+		
+		<typeAlias alias="payrollListRO" type="com.seegene.web.user.customer.payrollNotice.vo.PayrollListRO"/>
+		<typeAlias alias="payrollViewRO" type="com.seegene.web.user.customer.payrollNotice.vo.PayrollViewRO"/>
+		<typeAlias alias="payrollViewNextPreRO" type="com.seegene.web.user.customer.payrollNotice.vo.PayrollViewNextPreRO"/>
+		
+		
+    </typeAliases>
+</configuration>

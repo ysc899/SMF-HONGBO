@@ -1,0 +1,137 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+	html, body, div, span, applet, object, iframe,
+	h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+	a, abbr, acronym, address, big, cite, code,
+	del, dfn, em, img, ins, kbd, q, s, samp,
+	small, strike, strong, sub, sup, tt, var,
+	/* b, u, i, center, */
+	b, u, center,
+	dl, dt, dd, ol, ul, li,
+	fieldset, form, label, legend,
+	table, caption, tbody, tfoot, thead, tr, th, td,
+	article, aside, canvas, details, embed,
+	figure, figcaption, footer, header, hgroup,
+	menu, nav, output, ruby, section, summary,
+	time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	/* vertical-align: baseline; */
+}
+/* HTML5 display-role reset for older browsers */
+	article, aside, details, figcaption, figure,
+	footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+
+body {
+	line-height: 1;
+}
+
+ol, ul {
+	list-style: none;
+}
+
+li{
+	list-style: none;
+}
+
+blockquote, q {
+	quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+
+a{
+	text-decoration:none;
+	outline:none;
+}
+
+img{
+	border:0;
+}
+
+table, tr, td {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+a:link, a:visited {
+  text-decoration: none;
+
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="submit"],
+input[type="reset"],
+input[type="file"],
+textarea, input[type="button"],
+button {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+  outline: none;
+  background: none;
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  background: url("../img/select_arrow.png") no-repeat 100% center;
+  background-size: 7px;
+  padding-left: 2px;
+  padding-right: 15px;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  /* webkit specific styles go here */
+	select {
+	  -webkit-appearance: none;
+	  -moz-appearance: none;
+	  -ms-appearance: none;
+	  background: url("../img/select_arrow.png") no-repeat 95% center;
+	  background-size: 7px;
+	  padding-left: 2px;
+	  padding-right: 15px;
+	}
+}
+
+#family_site{
+	-webkit-appearance: none;
+	-moz-appearance : none;
+	-ms-appearance : none;
+	background: url("../img/arrow_up.png") no-repeat 95% center;
+	background-size: 10px;
+}
+
+option{
+	color:#aaa;
+}
+
+input, textarea, select {
+  outline: none;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  a img {
+    border: none
+  }
+}

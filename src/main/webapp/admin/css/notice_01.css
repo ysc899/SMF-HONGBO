@@ -1,0 +1,169 @@
+/*index css*/
+
+/*container 내용물*/
+
+#container .notice_area{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  min-height:636px;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  #container .notice_area{
+    width:100%;
+  	height:100%;
+  	overflow:hidden;
+  	min-height:662px;
+ }
+}
+
+@-moz-document url-prefix(){
+  #container .notice_area{
+    width:100%;
+  	height:100%;
+  	overflow:hidden;
+  	min-height:691px;
+ }
+}
+
+#container .notice_area h1{
+  margin-top:2%;
+  margin-left:10%;
+  font-weight:600;
+}
+
+#container .notice_area h1 img{
+  width: 15px;
+  vertical-align: -2px;
+  margin-right: 10px;
+}
+
+#container .notice_area ul{
+
+}
+
+#container .notice_area ul li{
+  float:left;
+  font-weight:bold;
+  color:#333;
+  cursor:pointer;
+}
+
+#container .notice_area p{
+/*   display:inline-block; */
+/*   font-weight:600; */
+/*   cursor:pointer; */
+}
+
+#container .notice_area p:hover{
+/*   text-decoration:underline; */
+}
+
+#container .notice_area p img{
+  vertical-align:-3px;
+}
+
+#container .notice_area table{
+  margin:1% 10% 1% 10%;
+  width:80%;
+  background-color:#fff;
+}
+
+#container .notice_area table tr{
+  border:1px solid #ddd;
+  border-collapse: collapse;
+}
+
+#container .notice_area table tr th{
+  border:1px solid #ddd;
+  font-weight:600;
+  color:#333;
+  height:50px;
+  text-align:left;
+  padding-left:15px;
+  border-collapse: collapse;
+}
+
+#container .notice_area table tr td{
+  border-left:none;
+  font-size:14px;
+  height:30px;
+  border-collapse: collapse;
+  border:1px solid #ddd;
+  text-align:left;
+  padding:15px;
+  line-height:1.5em;
+}
+
+#container .notice_area table tr td img{
+}
+
+#container .notice_area table tr .notice_title{
+  padding:8px 5%;
+}
+
+#container .notice_area table tr td b{
+  font-weight:bold;
+}
+
+#container .notice_area table tr .notice_information{
+  padding-top:2%;
+}
+
+#container .notice_area table tr td p{
+  margin:5px 0;
+}
+
+#container .notice_area table tr td span{
+  display:block;
+  padding:10px 0;
+  color:#888;
+}
+
+#container .notice_area table tr .boardcontent span{
+/*   display:block; */
+  padding:0;
+  color:#333;
+}
+#container .notice_area table tr .boardcontent ul li{
+/*   display:block; */
+  float:unset;
+  margin:0px;
+  font-weight:normal;
+  cursor:default;
+  padding:0px;
+  width: auto;
+  border:none;
+  
+}
+
+#container .notice_area table tr .boardcontent ul li:hover{
+  border:0px;
+}
+
+#container .notice_area table tr td ul{
+  overflow:hidden;
+}
+
+#container .notice_area table tr td ul li{
+  float:right;
+  margin-left:5px;
+  font-weight:bold;
+  color:#333;
+  cursor:pointer;
+  border:1px solid #ccc;
+  padding:10px;
+  margin:10px 5px;
+  width:85px;
+}
+
+#container .notice_area table tr td ul li:hover{
+  border:1px solid #aaa;
+}
+
+#container .notice_area table tr td ul li img{
+  width: 25px;
+  vertical-align: -7px;
+  margin-right: 4px;
+}

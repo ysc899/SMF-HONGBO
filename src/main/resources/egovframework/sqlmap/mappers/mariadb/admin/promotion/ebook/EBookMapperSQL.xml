@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.EBookMapper">
+
+
+	<!-- 전자책 로그용 조회 -->
+	<select id="findEBookBySeq" parameterType="HashMap" resultType="ebookVO">
+		SELECT *
+		FROM TIBA_EBOOK
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!--  전자책 관리 리스트 -->
+	<select id="findEBookList" parameterType="HashMap" resultType="ebookListRO" >
+		SELECT @ROWNUM:=@ROWNUM+1 as row, 
+			ta.SEQ,
+			ta.TITLE, 
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'ebookCat'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CATEGORY_TYPE
+			) as CODE_CATEGORY_NAME,
+			ta.PRINT_ORDER,
+			ta.EDIT_DATE 
+		FROM TIBA_EBOOK ta,
+		(SELECT @ROWNUM := #{offset}) TMP
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		<if test="codeCategoryType !=null and ! codeCategoryType.equals('')">
+			AND ta.CODE_CATEGORY_TYPE = #{codeCategoryType}
+		</if>
+		ORDER BY ta.SEQ desc
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 전자책 관리 리스트 카운트 -->
+	<select id="countEBookList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TIBA_EBOOK ta
+		WHERE ta.DELETE_FLAG = 'N'
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		<if test="codeCategoryType !=null and ! codeCategoryType.equals('')">
+			AND ta.CODE_CATEGORY_TYPE = #{codeCategoryType}
+		</if>
+	</select>
+	
+	<!-- 전자책 기본 정보 상세 조회용 -->
+	<select id="findEBookViewBySeq" parameterType="hashmap" resultType="ebookViewRO">
+		SELECT ta.SEQ, 
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_CATEGORY_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'ebookCat'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_CATEGORY_TYPE
+			) as CODE_CATEGORY_NAME,
+			ta.TITLE, 
+			ta.URL, 
+			ta.THUM_FILE_PATH,
+			ta.PRINT_ORDER,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(SELECT NAME from TAAA_ADMIN_USER WHERE USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME
+		FROM TIBA_EBOOK ta
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</select>
+
+
+	<!-- 언어코드에 따른 갯수 -->
+	<select id="maxPrintOrder" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) as CNT
+		FROM TIBA_EBOOK
+		WHERE DELETE_FLAG = 'N'
+		  AND CODE_LANG_TYPE = #{codeLangType}
+		  AND CODE_CATEGORY_TYPE = #{codeCategoryType}
+	</select>
+
+	
+	<!-- 전자책 등록 -->
+	<insert id="addEBook" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TIBA_EBOOK
+	(
+	    CODE_LANG_TYPE,
+	    CODE_CATEGORY_TYPE,
+	    TITLE,
+	    URL,
+	    THUM_FILE_PATH,
+	    EDIT_USER_ID,
+	    REG_USER_ID,
+	    REG_DATE,
+	    EDIT_DATE,
+		PRINT_ORDER,
+	    DELETE_FLAG    
+	)
+	VALUES
+	(
+		#{codeLangType},
+		#{codeCategoryType},
+		#{title}, 
+		#{url},
+		#{thumFilePath},
+		#{regUserId},
+		#{regUserId},
+		now(),
+		now(),
+		#{printOrder},
+	   'N'
+	)
+	</insert>
+	
+	
+	
+	<!-- 전자책 수정 -->
+	<update id="editEBook" parameterType="HashMap">
+		UPDATE TIBA_EBOOK
+		SET 
+			CODE_LANG_TYPE= #{codeLangType},
+			CODE_CATEGORY_TYPE= #{codeCategoryType},
+			PRINT_ORDER = #{printOrder},
+			TITLE= #{title},
+			URL= #{url},
+			THUM_FILE_PATH= #{thumFilePath},
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	<!-- 전자책 삭제 -->
+	<update id="deleteEBook" parameterType="HashMap">
+		UPDATE TIBA_EBOOK
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+
+	<!-- 전자책 로그 용 -->
+	<select id="checkEBookOrder" parameterType="HashMap" resultType="ebookVO">
+		SELECT *
+		FROM TIBA_EBOOK
+		WHERE DELETE_FLAG = 'N'
+		  AND PRINT_ORDER >= #{printOrder}
+		  AND CODE_LANG_TYPE = #{codeLangType}
+		  AND CODE_CATEGORY_TYPE = #{codeCategoryType}
+	</select>
+	<!-- 전자책 출력 순서 증가 업데이트 -->
+	<update id="updateEBookOrderInc" parameterType="HashMap">
+		UPDATE TIBA_EBOOK
+		SET PRINT_ORDER= PRINT_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		  AND PRINT_ORDER >= #{printOrder}
+		  AND CODE_LANG_TYPE = #{codeLangType}
+		  AND CODE_CATEGORY_TYPE = #{codeCategoryType}
+	</update>
+
+	<!-- 전자책 출력 순서 감소 업데이트 -->
+	<update id="updateEBookOrderDec" parameterType="HashMap">
+		UPDATE TIBA_EBOOK
+		SET PRINT_ORDER= PRINT_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		  AND PRINT_ORDER >= #{printOrder}
+		  AND CODE_LANG_TYPE = #{codeLangType}
+		  AND CODE_CATEGORY_TYPE = #{codeCategoryType}
+	</update>
+
+
+
+
+	<!-- 사용자용 -->
+	<!-- 리스트 조회 -->
+<!-- 	webzineListRO -->
+	<!--  전자책 관리 리스트 -->
+	<select id="findUserEBookList" parameterType="HashMap" resultType="webzineListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.CODE_CATEGORY_TYPE,
+			ta.URL,
+			ta.THUM_FILE_PATH,
+			ta.EDIT_DATE 
+		FROM TIBA_EBOOK ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeEbookCatType !=null and ! codeEbookCatType.equals('')">
+		<choose>
+			<when test="codeEbookCatType.equals('all')">
+				AND ta.CODE_CATEGORY_TYPE IN('news','leaflet')					
+				<!-- ORDER BY ta.PRINT_ORDER asc -->
+				ORDER BY ta.REG_DATE  DESC
+			</when>
+			<when test="!codeEbookCatType.equals('all')">
+				AND ta.CODE_CATEGORY_TYPE = #{codeEbookCatType}
+				ORDER BY ta.PRINT_ORDER asc
+			</when>
+			<otherwise>
+				AND ta.CODE_CATEGORY_TYPE <![CDATA[<>]]> 'brochure'
+				ORDER BY ta.SEQ desc
+			</otherwise>
+			</choose>
+		</if>
+<!-- 	
+ 		<choose>
+			<when test="codeEbookCatType !=null and ! codeEbookCatType.equals('')">
+				AND ta.CODE_CATEGORY_TYPE = #{codeEbookCatType}
+				ORDER BY ta.PRINT_ORDER asc
+			</when>
+			<otherwise>
+				AND ta.CODE_CATEGORY_TYPE <![CDATA[<>]]> 'brochure'
+				ORDER BY ta.SEQ desc
+			</otherwise>
+		</choose> 
+-->
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 전자책 사용자 리스트 카운트 -->
+	<select id="countUserEBookList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TIBA_EBOOK ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="codeEbookCatType !=null and ! codeEbookCatType.equals('')">
+		<choose>
+			<when test="codeEbookCatType.equals('all')">
+				AND ta.CODE_CATEGORY_TYPE IN('news','leaflet')					
+				ORDER BY ta.PRINT_ORDER asc
+			</when>
+			<when test="!codeEbookCatType.equals('all')">
+				AND ta.CODE_CATEGORY_TYPE = #{codeEbookCatType}
+				ORDER BY ta.PRINT_ORDER asc
+			</when>
+			<otherwise>
+				AND ta.CODE_CATEGORY_TYPE <![CDATA[<>]]> 'brochure'
+				ORDER BY ta.SEQ desc
+			</otherwise>
+			</choose>
+		</if>
+		<!-- 
+		<choose>
+			<when test="codeEbookCatType !=null and ! codeEbookCatType.equals('')">
+				AND ta.CODE_CATEGORY_TYPE = #{codeEbookCatType}
+			</when>
+			<otherwise>
+				AND ta.CODE_CATEGORY_TYPE <![CDATA[<>]]> 'brochure'
+			</otherwise>
+		</choose> 
+		-->
+		
+		
+	</select>
+	
+	<select id="findUserEBookMainList" parameterType="HashMap" resultType="webzineListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.CODE_CATEGORY_TYPE,
+			ta.URL,
+			ta.THUM_FILE_PATH,
+			ta.EDIT_DATE,
+			ta.REG_DATE
+		FROM TIBA_EBOOK ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		AND ta.CODE_CATEGORY_TYPE <![CDATA[<>]]> 'brochure'
+		ORDER BY ta.SEQ desc
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	<!--  메인 검색  전자책 리스트 -->
+	<select id="findUserMainSearchEBookList" parameterType="HashMap" resultType="webzineListRO" >
+		SELECT  
+			ta.SEQ,
+			ta.TITLE, 
+			ta.CODE_CATEGORY_TYPE,
+			ta.URL,
+			ta.THUM_FILE_PATH,
+			ta.EDIT_DATE 
+		FROM TIBA_EBOOK ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		<if test="codeEbookCatType !=null and ! codeEbookCatType.equals('')">
+			AND ta.CODE_CATEGORY_TYPE = #{codeEbookCatType}
+		</if>
+		ORDER BY ta.SEQ desc
+		
+		LIMIT #{limit} OFFSET #{offset}
+	
+	</select>
+	
+	
+	<!-- 메인 검색  전자책  카운트 -->
+	<select id="countUserMainSearchEBookList" parameterType="HashMap" resultType="Integer">
+		SELECT COUNT(1) CNT
+		FROM TIBA_EBOOK ta
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.CODE_LANG_TYPE = #{codeLangType}
+		<if test="searchKeyword !=null and ! searchKeyword.equals('')">
+			AND ta.TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		<if test="codeEbookCatType !=null and ! codeEbookCatType.equals('')">
+			AND ta.CODE_CATEGORY_TYPE = #{codeEbookCatType}
+		</if>
+	</select>
+	
+	<select id="webzine_en_list" parameterType="HashMap" resultType="webzineListRO" >	
+		SELECT 
+			ta.SEQ, ta.TITLE, 
+			ta.CODE_CATEGORY_TYPE, 
+			ta.URL, ta.THUM_FILE_PATH, 
+			ta.EDIT_DATE,
+			ta.REG_DATE 
+			FROM TIBA_EBOOK ta 
+			WHERE ta.DELETE_FLAG = 'N' 
+			AND ta.CODE_LANG_TYPE ='en' 
+			AND ta.CODE_CATEGORY_TYPE = 'news' 
+			ORDER BY ta.PRINT_ORDER asc 
+			LIMIT 6 OFFSET 0
+	</select>
+	
+</mapper>

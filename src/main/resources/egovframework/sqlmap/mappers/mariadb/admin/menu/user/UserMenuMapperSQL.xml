@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seegene.web.repository.mariadb.MenuUserMapper">
+
+
+	<!-- 관리자 메뉴 리스트 -->
+<!-- 	<select id="findAllAdminMenu"  resultType="menuAdminVO"> -->
+<!-- 			SELECT -->
+<!-- 				SEQ, MENU_NAME, MENU_ORDER, PARENT_SEQ -->
+<!-- 			FROM TACA_ADMIN_MENU -->
+<!-- 			WHERE DELETE_FLAG = 'N' -->
+<!-- 	</select> -->
+	
+	<!-- 단일 조회 -->
+	<select id="findBySeq" parameterType="HashMap" resultType="menuVO">
+		SELECT *
+		FROM TACB_MENU
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 사용자 메뉴 관리 리스트 -->
+	<select id="findUserMenuList" parameterType="HashMap" resultType="menuVO" >
+		SELECT ta.SEQ,
+			ta.MENU_NAME,
+			ta.MENU_ORDER,
+			ta.MENU_LEVEL,
+			ta.MENU_URL,
+			ta.PARENT_SEQ,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LOGIN_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'menu-login'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LOGIN_TYPE
+			) as CODE_LOGIN_NAME,
+			ta.CODE_MENU_TYPE,
+				(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'menu-type'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_MENU_TYPE
+			) as CODE_MENU_NAME,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(select NAME from TAAA_ADMIN_USER where USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME 
+		FROM TACB_MENU ta
+		WHERE DELETE_FLAG = 'N'
+	
+	</select>
+	
+	
+	<!-- 사용자 메뉴 상세 조회용 -->
+	<select id="findUserMenuInfo" parameterType="HashMap" resultType="menuVO">
+		SELECT ta.SEQ,
+			ta.MENU_NAME,
+			ta.MENU_ORDER,
+			ta.MENU_LEVEL,
+			ta.MENU_URL,
+			ta.PARENT_SEQ,
+			COALESCE(tb.MENU_NAME, '-') as PARENT_NAME,
+			ta.CODE_LANG_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'lang'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LANG_TYPE
+			) as CODE_LANG_NAME,
+			ta.CODE_LOGIN_TYPE,
+			(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'menu-login'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_LOGIN_TYPE
+			) as CODE_LOGIN_NAME,
+			ta.CODE_MENU_TYPE,
+				(
+				SELECT tba.SLAVE_CODE_NAME
+				FROM TABB_CODE_SLAVE tba
+				WHERE tba.MASTER_CODE = 'menu-type'
+				AND tba.DELETE_FLAG = 'N'
+				AND tba.SLAVE_CODE = ta.CODE_MENU_TYPE
+			) as CODE_MENU_NAME,
+			ta.EDIT_DATE,
+			ta.EDIT_USER_ID,
+			(select NAME from TAAA_ADMIN_USER where USER_ID = ta.EDIT_USER_ID) as EDIT_USER_NAME  
+		FROM TACB_MENU ta
+			LEFT OUTER JOIN
+			TACB_MENU tb
+		ON ta.PARENT_SEQ = tb.SEQ
+		WHERE ta.DELETE_FLAG = 'N'
+		AND ta.SEQ = #{seq}
+	</select>
+	
+	<!-- 사용자 메뉴 헤더 메뉴부모 선택용 -->
+	<select id="findUserMenuParent" parameterType="hashmap" resultType="menuSelectParentListRO">
+		SELECT SEQ, MENU_LEVEL, MENU_NAME, MENU_ORDER, CODE_MENU_TYPE, PARENT_SEQ
+		FROM TACB_MENU
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+		AND CODE_MENU_TYPE = 'head'
+	</select>
+	
+	<!-- 사용자 메뉴 헤더 최상위 카운트 -->
+	<select id="countUserHeadTopMenu" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TACB_MENU
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+		AND PARENT_SEQ IS NULL
+		AND CODE_MENU_TYPE = 'head'
+	</select>
+	
+	<!-- 사용자 메뉴 헤더 상위 메뉴 카운트 -->
+	<select id="countUserHeadParentMenu" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TACB_MENU
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND PARENT_SEQ = #{parentSeq}
+		AND CODE_MENU_TYPE = 'head'
+	</select>
+	
+	<!-- 사용자 메뉴 퀵 메뉴 카운트 -->
+	<select id="countUserQuickMenu" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TACB_MENU
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+		AND CODE_MENU_TYPE = 'quick'
+	</select>
+	
+	<!-- 자식 메뉴 카운트 -->
+	<select id="countByChild" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(1) AS CNT
+		FROM TACB_MENU
+		WHERE DELETE_FLAG = 'N'
+		AND PARENT_SEQ = #{seq}
+	</select>
+	
+
+	<!-- 메뉴 로그 용 -->	
+	<select id="checkMenuOrder" parameterType="HashMap" resultType="menuVO">
+		SELECT *
+		FROM TACB_MENU
+		WHERE DELETE_FLAG = 'N'
+		<choose>
+			<when test="parentSeq == 0">
+				AND PARENT_SEQ IS NULL
+			</when>
+			<otherwise>
+				AND PARENT_SEQ = #{parentSeq}
+			</otherwise>
+		</choose>
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_MENU_TYPE = #{codeMenuType}
+		AND MENU_ORDER >= #{menuOrder}
+	</select>
+	
+	<!-- 메뉴 출력 순서 증가 업데이트 -->
+	<update id="updateMenuOrderInc" parameterType="HashMap">
+		UPDATE TACB_MENU
+		SET MENU_ORDER= MENU_ORDER+1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		<choose>
+			<when test="parentSeq == 0">
+				AND PARENT_SEQ IS NULL
+			</when>
+			<otherwise>
+				AND PARENT_SEQ = #{parentSeq}
+			</otherwise>
+		</choose>
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_MENU_TYPE = #{codeMenuType}
+		AND MENU_ORDER >= #{menuOrder}
+	</update>
+	
+	<!-- 메뉴 출력 순서 감소 업데이트 -->
+	<update id="updateMenuOrderDec" parameterType="HashMap">
+		UPDATE TACB_MENU
+		SET MENU_ORDER= MENU_ORDER-1,
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		<choose>
+			<when test="parentSeq == 0">
+				AND PARENT_SEQ IS NULL
+			</when>
+			<otherwise>
+				AND PARENT_SEQ = #{parentSeq}
+			</otherwise>
+		</choose>
+		AND CODE_LANG_TYPE = #{codeLangType}
+		AND CODE_MENU_TYPE = #{codeMenuType}
+		AND MENU_ORDER >= #{menuOrder}
+	</update>
+	
+	<!-- 메뉴 등록 -->
+	<insert id="addMenuUser" parameterType="HashMap"  useGeneratedKeys="true" keyProperty="seq">
+	INSERT INTO TACB_MENU
+	(
+		CODE_LANG_TYPE, 
+		CODE_MENU_TYPE, 
+		CODE_LOGIN_TYPE,
+		 
+		MENU_NAME, 
+		MENU_URL, 
+		MENU_ORDER, 
+		
+		MENU_LEVEL, 
+		<if test="parentSeq > 0"> 
+			PARENT_SEQ, 
+		</if>
+		
+		REG_USER_ID,
+		EDIT_USER_ID, 
+		REG_DATE, 
+		EDIT_DATE, 
+		DELETE_FLAG 
+	)
+	VALUES
+	(
+		#{codeLangType},
+		#{codeMenuType},
+		#{codeLoginType},
+		
+		#{menuName}, 
+		#{menuUrl},
+		#{menuOrder},
+		<if test="parentSeq > 0">
+		(SELECT tb.MENU_LEVEL+1 FROM TACB_MENU tb WHERE tb.SEQ = #{parentSeq}),
+		#{parentSeq}, 
+		</if>
+		<if test="parentSeq == 0"> 
+			1, 
+		</if>
+		
+		 #{regUserId},
+		 #{regUserId},
+		 now(),
+		 now(),
+		 'N'
+	)
+	</insert>
+	
+	<!-- 메뉴 수정 -->
+	<update id="editMenu" parameterType="HashMap">
+		UPDATE TACB_MENU
+		SET 
+			CODE_LANG_TYPE = #{codeLangType},
+			CODE_MENU_TYPE = #{codeMenuType}, 
+			CODE_LOGIN_TYPE = #{codeLoginType},
+			
+			MENU_NAME = #{menuName},
+			MENU_URL = #{menuUrl},
+			MENU_ORDER = #{menuOrder},
+			<if test="parentSeq > 0">
+				PARENT_SEQ = #{parentSeq}, 
+				MENU_LEVEL = (
+						SELECT tc.lv
+						FROM(
+							SELECT
+								tb.MENU_LEVEL + 1 as lv
+							FROM
+								TACB_MENU tb
+							WHERE
+								tb.SEQ = #{parentSeq}
+						) tc
+					),
+			</if>
+			<if test="parentSeq == 0">
+				PARENT_SEQ = null, 
+				MENU_LEVEL = 1,
+			</if>
+			
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+
+	<!-- 메뉴 삭제 -->
+	<update id="deleteMenu" parameterType="HashMap">
+		UPDATE TACB_MENU
+		SET DELETE_FLAG = 'Y',
+			EDIT_DATE = now(),
+			EDIT_USER_ID = #{editUserId}
+		WHERE DELETE_FLAG = 'N'
+		AND SEQ = #{seq}
+	</update>
+	
+	
+	
+	
+	
+	
+	<!--   사용자 화면에서 사용하는 SQL   -->
+		<!-- 사용자 메뉴 관리 리스트 -->
+	<select id="findUserLangMenuList" parameterType="HashMap" resultType="menuVO" >
+		SELECT * 
+		FROM TACB_MENU ta
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+	</select>
+	<!-- 비로그인한 사용자용 -->
+	<select id="findUserNonLoginLangMenuList" parameterType="HashMap" resultType="menuVO" >
+		SELECT * 
+		FROM TACB_MENU ta
+		WHERE DELETE_FLAG = 'N'
+		AND CODE_LANG_TYPE = #{langCode}
+		AND CODE_LOGIN_TYPE = 'anonymous'
+	</select>
+	
+
+</mapper>
