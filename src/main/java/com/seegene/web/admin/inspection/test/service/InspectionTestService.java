@@ -57,8 +57,8 @@ public class InspectionTestService {
 	@Autowired
 	private FileComponent fileComponent;
 
-	private final List<String> SEARCH_CODES = Arrays.asList("TEST_INFO", "MEDI_CLS", "DISS_CLS");
-	private final List<String> SEARCH_CODES_EN = Arrays.asList("TEST_INFO_ENG", "MEDI_CLS_ENG", "DISS_CLS_ENG");
+	private final List<String> SEARCH_CODES = Arrays.asList("TEST_INFO", "MEDI_CLS2", "DISS_CLS");
+	private final List<String> SEARCH_CODES_EN = Arrays.asList("TEST_INFO_ENG", "MEDI_CLS_ENG2", "DISS_CLS_ENG");
 
 	/**
 	 * @return 검색 옵션에 사용할 기본 코드들
@@ -72,7 +72,7 @@ public class InspectionTestService {
 			return t.getS002pscd().equals("TEST_INFO");
 		}).sorted().collect(Collectors.toList());
 		List<DB2CodeRO> mediClsCodes = results.stream().filter(t -> {
-			return t.getS002pscd().equals("MEDI_CLS");
+			return t.getS002pscd().equals("MEDI_CLS2");
 		}).sorted().collect(Collectors.toList());
 		List<DB2CodeRO> dissClsCodes = results.stream().filter(t -> {
 			return t.getS002pscd().equals("DISS_CLS");
@@ -98,7 +98,7 @@ public class InspectionTestService {
 			return t.getS002pscd().equals("TEST_INFO_ENG");
 		}).sorted().collect(Collectors.toList());
 		List<DB2CodeRO> mediClsCodes = results.stream().filter(t -> {
-			return t.getS002pscd().equals("MEDI_CLS_ENG");
+			return t.getS002pscd().equals("MEDI_CLS_ENG2");
 		}).sorted().collect(Collectors.toList());
 		List<DB2CodeRO> dissClsCodes = results.stream().filter(t -> {
 			return t.getS002pscd().equals("DISS_CLS_ENG");
